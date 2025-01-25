@@ -1,12 +1,15 @@
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "../api/auth/[...nextauth]/route"
-import { redirect } from "next/navigation"
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function IsciPage() {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions);
 
-  if (!session || (session.user.role !== "İşçi" && session.user.role !== "Admin")) {
-    redirect("/dashboard")
+  if (
+    !session ||
+    (session.user.role !== "İşçi" && session.user.role !== "Admin")
+  ) {
+    redirect("/dashboard");
   }
 
   return (
@@ -19,6 +22,5 @@ export default async function IsciPage() {
         <li>Ekipman Durumu</li>
       </ul>
     </div>
-  )
+  );
 }
-
