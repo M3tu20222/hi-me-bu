@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import type { Season, SeasonInput } from "@/types/season";
 
 export default function EditSeasonPage({ params }: { params: { id: string } }) {
-  const [season, setSeason] = useState<any>(null);
+  const [season, setSeason] = useState<SeasonInput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -24,6 +25,8 @@ export default function EditSeasonPage({ params }: { params: { id: string } }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!season) return;
+
     setIsLoading(true);
     setError("");
 
@@ -67,7 +70,11 @@ export default function EditSeasonPage({ params }: { params: { id: string } }) {
             type="text"
             id="name"
             value={season.name}
-            onChange={(e) => setSeason({ ...season, name: e.target.value })}
+            onChange={(e) =>
+              setSeason((prev) =>
+                prev ? { ...prev, name: e.target.value } : null
+              )
+            }
             className="w-full p-2 bg-gray-700 rounded border border-neon-blue focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             required
           />
@@ -82,7 +89,13 @@ export default function EditSeasonPage({ params }: { params: { id: string } }) {
           <select
             id="status"
             value={season.status}
-            onChange={(e) => setSeason({ ...season, status: e.target.value })}
+            onChange={(e) =>
+              setSeason((prev) =>
+                prev
+                  ? { ...prev, status: e.target.value as "Aktif" | "Pasif" }
+                  : null
+              )
+            }
             className="w-full p-2 bg-gray-700 rounded border border-neon-blue focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
           >
             <option value="Aktif">Aktif</option>

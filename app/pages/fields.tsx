@@ -1,4 +1,4 @@
-import FieldList from "@components/FieldList"
+import FieldList from "@/components/FieldList";
 
 export default function FieldsPage() {
   return (
@@ -6,6 +6,5 @@ export default function FieldsPage() {
       <h1 className="text-3xl font-bold mb-6">Tarla Yönetimi</h1>
       <FieldList />
     </div>
-  )
+  );
 }
-

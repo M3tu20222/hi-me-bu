@@ -1,31 +1,10 @@
-"use client"
+import FieldList from "@/components/FieldList";
 
-import { useState, useEffect } from "react"
-import type { Field } from "@/types"
-
-export default function FieldList() {
-  const [fields, setFields] = useState<Field[]>([])
-
-  useEffect(() => {
-    async function fetchFields() {
-      const response = await fetch("/api/fields")
-      const data = await response.json()
-      setFields(data)
-    }
-    fetchFields()
-  }, [])
-
+export default function FieldsPage() {
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Tarlalar</h2>
-      <ul>
-        {fields.map((field) => (
-          <li key={field._id} className="mb-2">
-            <span className="font-semibold">{field.name}</span> - {field.size} dekar
-          </li>
-        ))}
-      </ul>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Tarla Yönetimi</h1>
+      <FieldList />
     </div>
-  )
+  );
 }
-
