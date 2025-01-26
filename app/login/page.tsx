@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Footer from "@/components/Footer";
@@ -12,6 +12,14 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    if (session?.user) {
+      router.push("/dashboard");
+    }
+  }, [session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +36,7 @@ export default function Login() {
       if (result?.error) {
         setError(result.error);
       } else {
+        // Ensure we redirect to dashboard after successful login
         router.push("/dashboard");
         router.refresh();
       }
