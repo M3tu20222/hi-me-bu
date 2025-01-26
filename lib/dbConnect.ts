@@ -27,11 +27,21 @@ async function dbConnect(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
-      return mongoose;
-    });
+    cached.promise = mongoose
+      .connect(MONGODB_URI!, opts)
+      .then((mongoose) => {
+        return mongoose;
+      })
+      .catch((error) => {
+        console.error("MongoDB connection error:", error);
+        cached.promise = null;
+        throw error;
+      });
   }
 
   try {

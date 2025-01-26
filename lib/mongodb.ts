@@ -5,7 +5,11 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI;
-const options = {};
+const options = {
+  maxPoolSize: 10,
+  serverSelectionTimeoutMS: 5000,
+  socketTimeoutMS: 45000,
+};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
@@ -30,6 +34,4 @@ if (process.env.NODE_ENV === "development") {
   clientPromise = client.connect();
 }
 
-// Export a module-scoped MongoClient promise. By doing this in a
-// separate module, the client can be shared across functions.
 export default clientPromise;

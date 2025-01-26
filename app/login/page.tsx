@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Footer from "@/components/Footer";
@@ -12,6 +12,15 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Add useEffect to handle redirect when session is available
+  useEffect(() => {
+    if (session?.user) {
+      router.push("/dashboard");
+      router.refresh();
+    }
+  }, [session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +37,11 @@ export default function Login() {
       if (result?.error) {
         setError(result.error);
       } else {
-        router.push("/dashboard");
-        router.refresh();
+        // Wait a moment before redirecting to ensure session is updated
+        setTimeout(() => {
+          router.push("/dashboard");
+          router.refresh();
+        }, 100);
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -38,6 +50,11 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+
+  // If already logged in, redirect to dashboard
+  if (status === "authenticated") {
+    return null; // Return null while redirecting
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black text-white flex flex-col">
