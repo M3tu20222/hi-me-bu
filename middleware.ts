@@ -6,37 +6,25 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
   const path = request.nextUrl.pathname;
 
-  // Allow public paths
+  // Public paths
   if (path === "/login" || path === "/register") {
-    // If user is already logged in, redirect to dashboard
     if (token) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
     return NextResponse.next();
   }
 
-  // Require authentication for protected paths
+  // Protected paths
   if (!token) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // Role-based access control
-  if (path.startsWith("/admin") && token.role !== "Admin") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
+  const role = token.role as string;
   if (
-    path.startsWith("/ortak") &&
-    token.role !== "Ortak" &&
-    token.role !== "Admin"
-  ) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
-  if (
-    path.startsWith("/isci") &&
-    token.role !== "İşçi" &&
-    token.role !== "Admin"
+    (path.startsWith("/admin") && role !== "Admin") ||
+    (path.startsWith("/ortak") && role !== "Ortak" && role !== "Admin") ||
+    (path.startsWith("/isci") && role !== "İşçi" && role !== "Admin")
   ) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }

@@ -12,14 +12,13 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    // Check if user is already logged in
-    if (session?.user) {
+    if (status === "authenticated") {
       router.push("/dashboard");
     }
-  }, [session, router]);
+  }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +35,7 @@ export default function Login() {
       if (result?.error) {
         setError(result.error);
       } else {
-        // Ensure we redirect to dashboard after successful login
         router.push("/dashboard");
-        router.refresh();
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -47,6 +44,14 @@ export default function Login() {
       setIsLoading(false);
     }
   };
+
+  if (status === "loading") {
+    return <div>Yükleniyor...</div>;
+  }
+
+  if (status === "authenticated") {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black text-white flex flex-col">
