@@ -16,32 +16,41 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email ve şifre gerekli");
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error("Email ve şifre gerekli");
+          }
+
+          await dbConnect();
+
+          const user = await User.findOne({
+            email: credentials.email,
+          }).maxTimeMS(5000);
+
+          if (!user) {
+            throw new Error("Kullanıcı bulunamadı");
+          }
+
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
+          if (!isValid) {
+            throw new Error("Geçersiz şifre");
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          };
+        } catch (error) {
+          console.error("Authorization error:", error);
+          throw new Error(
+            error instanceof Error ? error.message : "Kimlik doğrulama hatası"
+          );
         }
-
-        await dbConnect();
-
-        const user = await User.findOne({ email: credentials.email });
-
-        if (!user) {
-          throw new Error("Kullanıcı bulunamadı");
-        }
-
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
-        if (!isValid) {
-          throw new Error("Geçersiz şifre");
-        }
-
-        return {
-          id: user._id.toString(),
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        };
       },
     }),
   ],
@@ -67,6 +76,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   session: {
     strategy: "jwt",

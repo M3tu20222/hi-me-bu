@@ -8,18 +8,13 @@ if (!MONGODB_URI) {
   );
 }
 
-interface MongooseConnection {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-}
-
-let cached: MongooseConnection = (global as any).mongoose;
+let cached = (global as any).mongoose;
 
 if (!cached) {
   cached = (global as any).mongoose = { conn: null, promise: null };
 }
 
-async function dbConnect(): Promise<typeof mongoose> {
+async function dbConnect() {
   if (cached.conn) {
     return cached.conn;
   }
