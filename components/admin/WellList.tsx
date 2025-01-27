@@ -4,11 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
 import type { Well } from "@/types/well";
+import { useSession } from "next-auth/react";
 
 export default function WellList() {
+  const { data: session } = useSession();
   const [wells, setWells] = useState<Well[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const isAdmin = session?.user?.role === "Admin";
 
   useEffect(() => {
     const fetchWells = async () => {
@@ -52,9 +55,11 @@ export default function WellList() {
     <div className="bg-gray-900 shadow-lg rounded-lg overflow-hidden cyberpunk-border">
       <div className="flex justify-between items-center p-4 border-b border-neon-purple">
         <h2 className="text-xl font-semibold cyberpunk-text">Kuyu Listesi</h2>
-        <Link href="/admin/wells/add" className="cyberpunk-button">
-          Yeni Kuyu Ekle
-        </Link>
+        {isAdmin && (
+          <Link href="/admin/wells/add" className="cyberpunk-button">
+            Yeni Kuyu Ekle
+          </Link>
+        )}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -67,7 +72,9 @@ export default function WellList() {
               <th className="p-3 text-left text-neon-blue">Kapasite</th>
               <th className="p-3 text-left text-neon-blue">Durum</th>
               <th className="p-3 text-left text-neon-blue">Sorumlu</th>
-              <th className="p-3 text-left text-neon-blue">İşlemler</th>
+              {isAdmin && (
+                <th className="p-3 text-left text-neon-blue">İşlemler</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -82,20 +89,22 @@ export default function WellList() {
                 <td className="p-3 text-white">
                   {well.responsibleUser?.name || "Atanmamış"}
                 </td>
-                <td className="p-3">
-                  <Link
-                    href={`/admin/wells/edit/${well._id}`}
-                    className="text-neon-blue hover:text-neon-pink mr-2"
-                  >
-                    <Edit size={18} />
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(well._id)}
-                    className="text-neon-pink hover:text-neon-blue"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
+                {isAdmin && (
+                  <td className="p-3">
+                    <Link
+                      href={`/admin/wells/edit/${well._id}`}
+                      className="text-neon-blue hover:text-neon-pink mr-2"
+                    >
+                      <Edit size={18} />
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(well._id)}
+                      className="text-neon-pink hover:text-neon-blue"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

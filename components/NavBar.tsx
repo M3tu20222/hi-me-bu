@@ -51,6 +51,14 @@ export default function NavBar() {
               </Link>
             </>
           )}
+          {session.user.role === "Ortak" && (
+            <Link
+              href="/ortak/wells"
+              className="text-neon-blue hover:text-neon-pink"
+            >
+              Kuyu Listesi
+            </Link>
+          )}
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             className="btn-neon-pink"
