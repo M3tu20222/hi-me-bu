@@ -1,12 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
-  content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-  ],
+  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   theme: {
     container: {
       center: true,
@@ -50,10 +45,10 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        'neon-pink': '#FF6AC1',
-        'neon-blue': '#00FFFF',
-        'neon-purple': '#9D00FF',
-        'neon-yellow': '#FFFF00',
+        "neon-pink": "#FF6AC1",
+        "neon-blue": "#00FFFF",
+        "neon-purple": "#9D00FF",
+        "neon-yellow": "#FFFF00",
       },
       borderRadius: {
         lg: "var(--radius)",

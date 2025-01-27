@@ -4,7 +4,6 @@ const WellSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     location: { type: String, required: true },
-    region: { type: String, required: true },
     depth: { type: Number, required: true },
     capacity: { type: Number, required: true }, // m3/hour
     status: {
