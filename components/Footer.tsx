@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="bg-black bg-opacity-80 text-white py-4 border-t border-neon-blue">
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <p className="text-neon-blue">&copy; 2023 Çiftçilik Sistemi</p>
+        <p className="text-neon-blue">&copy; 2025 Çiftçilik Sistemi</p>
         <nav>
           <ul className="flex space-x-4">
             <li>
