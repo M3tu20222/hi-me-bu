@@ -49,15 +49,29 @@ export default function NavBar() {
               >
                 Kuyu Yönetimi
               </Link>
+              <Link
+                href="/admin/fields"
+                className="text-neon-blue hover:text-neon-pink"
+              >
+                Tarla Yönetimi
+              </Link>
             </>
           )}
           {session.user.role === "Ortak" && (
-            <Link
-              href="/ortak/wells"
-              className="text-neon-blue hover:text-neon-pink"
-            >
-              Kuyu Listesi
-            </Link>
+            <>
+              <Link
+                href="/ortak/wells"
+                className="text-neon-blue hover:text-neon-pink"
+              >
+                Kuyu Listesi
+              </Link>
+              <Link
+                href="/ortak/fields"
+                className="text-neon-blue hover:text-neon-pink"
+              >
+                Tarla Listesi
+              </Link>
+            </>
           )}
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
