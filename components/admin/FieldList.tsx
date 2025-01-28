@@ -68,11 +68,10 @@ export default function FieldList() {
               <th className="p-3 text-left text-neon-blue">Ad</th>
               <th className="p-3 text-left text-neon-blue">Boyut (Dönüm)</th>
               <th className="p-3 text-left text-neon-blue">Konum</th>
-              <th className="p-3 text-left text-neon-blue">Sahibi</th>
-              <th className="p-3 text-left text-neon-blue">Kuyu</th>
               <th className="p-3 text-left text-neon-blue">Ürün</th>
               <th className="p-3 text-left text-neon-blue">Sezon</th>
               <th className="p-3 text-left text-neon-blue">Durum</th>
+              <th className="p-3 text-left text-neon-blue">Ortak</th>
               <th className="p-3 text-left text-neon-blue">Kiralık</th>
               <th className="p-3 text-left text-neon-blue">Ada-Parsel</th>
               {isAdmin && (
@@ -87,16 +86,15 @@ export default function FieldList() {
                 <td className="p-3 text-white">{field.size}</td>
                 <td className="p-3 text-white">{field.location}</td>
                 <td className="p-3 text-white">
-                  {field.owner?.name || "Atanmamış"}
-                </td>
-                <td className="p-3 text-white">{field.well?.name || "Yok"}</td>
-                <td className="p-3 text-white">
                   {field.crop || "Belirlenmemiş"}
                 </td>
                 <td className="p-3 text-white">
                   {field.season?.name || "Belirlenmemiş"}
                 </td>
                 <td className="p-3 text-neon-blue">{field.status}</td>
+                <td className="p-3 text-white">
+                  {field.isShared ? "Evet" : "Hayır"}
+                </td>
                 <td className="p-3 text-white">
                   {field.isRented ? "Evet" : "Hayır"}
                 </td>

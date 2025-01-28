@@ -12,6 +12,7 @@ const WellSchema = new mongoose.Schema(
       enum: ["Aktif", "Bakımda", "Kapalı"],
       default: "Aktif",
     },
+    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     fields: [{ type: mongoose.Schema.Types.ObjectId, ref: "Field" }],
     responsibleUser: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },

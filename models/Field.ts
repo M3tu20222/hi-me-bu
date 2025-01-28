@@ -5,8 +5,6 @@ const FieldSchema = new mongoose.Schema(
     name: { type: String, required: true },
     size: { type: Number, required: true }, // Dönüm cinsinden
     location: { type: String, required: true },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    well: { type: mongoose.Schema.Types.ObjectId, ref: "Well" },
     crop: { type: String },
     status: {
       type: String,
@@ -16,7 +14,8 @@ const FieldSchema = new mongoose.Schema(
     season: { type: mongoose.Schema.Types.ObjectId, ref: "Season" },
     isIrrigated: { type: Boolean, default: false },
     isRented: { type: Boolean, default: false },
-    blockParcel: { type: String }, // Ada-Parsel
+    isShared: { type: Boolean, default: false },
+    blockParcel: { type: String },
   },
   { timestamps: true }
 );

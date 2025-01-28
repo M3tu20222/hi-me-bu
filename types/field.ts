@@ -14,6 +14,7 @@ export interface Field extends Document {
   isIrrigated: boolean;
   season?: { _id: string; name: string };
   isRented: boolean;
+  isShared: boolean;
   blockParcel?: string;
   createdAt: Date;
   updatedAt: Date;

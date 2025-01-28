@@ -1,5 +1,11 @@
-// Create a new file to handle all model imports in the correct order
 export { default as User } from "@/models/User";
 export { default as Well } from "@/models/Well";
 export { default as Field } from "@/models/Field";
 export { default as Season } from "@/models/Season";
+export { default as FieldOwnership } from "@/models/FieldOwnership";
+export { default as WellUsage } from "@/models/WellUsage";
+export { default as Asset } from "@/models/Asset";
+export { default as AssetOwnership } from "@/models/AssetOwnership";
+export { default as Transaction } from "@/models/Transaction";
+export { default as Inventory } from "@/models/Inventory";
+export { default as Loan } from "@/models/Loan";
