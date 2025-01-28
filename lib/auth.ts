@@ -23,9 +23,9 @@ export const authOptions: NextAuthOptions = {
 
           await dbConnect();
 
-          const user = await User.findOne({
-            email: credentials.email,
-          }).maxTimeMS(5000);
+          const user = await User.findOne({ email: credentials.email })
+            .maxTimeMS(10000)
+            .exec();
 
           if (!user) {
             throw new Error("Kullanıcı bulunamadı");
@@ -82,15 +82,12 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
     error: "/login",
+    signOut: "/",
   },
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
-  events: {
-    async signIn({ user }) {
-      console.log("User signed in:", user.email);
-    },
-  },
+  debug: process.env.NODE_ENV === "development",
 };

@@ -9,6 +9,19 @@ export default function NavBar() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  const handleSignOut = async () => {
+    try {
+      await signOut({
+        callbackUrl: "/",
+        redirect: true,
+      });
+    } catch (error) {
+      console.error("Çıkış yapılırken hata oluştu:", error);
+      // Hata durumunda da ana sayfaya yönlendir
+      router.push("/");
+    }
+  };
+
   return (
     <nav className="bg-black bg-opacity-80 text-white py-4 px-6 flex justify-between items-center border-b border-neon-blue">
       <div className="flex items-center space-x-4">
@@ -73,10 +86,7 @@ export default function NavBar() {
               </Link>
             </>
           )}
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="btn-neon-pink"
-          >
+          <button onClick={handleSignOut} className="btn-neon-pink">
             Çıkış Yap
           </button>
         </div>
