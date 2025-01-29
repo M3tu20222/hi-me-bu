@@ -1,7 +1,7 @@
 import type { Document } from "mongoose";
 import type { User } from "./user";
 import type { Well } from "./well";
-import type { Product } from "./product";
+import type { SimpleProduct } from "./product";
 import type { Season } from "./season";
 
 export interface FieldOwnership {
@@ -22,7 +22,7 @@ export interface Field extends Document {
   isRented: boolean;
   isShared: boolean;
   blockParcel?: string;
-  products: Array<{ _id: string; name: string }>;
+  products: SimpleProduct[];
   owners: FieldOwnership[];
   createdAt: Date;
   updatedAt: Date;

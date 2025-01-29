@@ -6,7 +6,7 @@ import type { Field, FieldOwnership } from "@/types/field";
 import type { User } from "@/types/user";
 import type { Season } from "@/types/season";
 import type { Well } from "@/types/well";
-import type { Product } from "@/types/product";
+import type { Product, SimpleProduct } from "@/types/product";
 
 export default function FieldForm({ field }: { field?: Field }) {
   const [name, setName] = useState(field?.name ?? "");
@@ -24,7 +24,7 @@ export default function FieldForm({ field }: { field?: Field }) {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [wells, setWells] = useState<Well[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [fieldProducts, setFieldProducts] = useState<Product[]>(
+  const [fieldProducts, setFieldProducts] = useState<SimpleProduct[]>(
     field?.products ?? []
   );
   const [error, setError] = useState("");
@@ -141,7 +141,10 @@ export default function FieldForm({ field }: { field?: Field }) {
   const handleAddProduct = (productId: string) => {
     const productToAdd = products.find((p) => p._id === productId);
     if (productToAdd && !fieldProducts.some((p) => p._id === productId)) {
-      setFieldProducts([...fieldProducts, productToAdd]);
+      setFieldProducts([
+        ...fieldProducts,
+        { _id: productToAdd._id, name: productToAdd.name },
+      ]);
     }
   };
 
@@ -345,6 +348,8 @@ export default function FieldForm({ field }: { field?: Field }) {
               placeholder="Yüzde"
               min="0"
               max="100"
+              step="0.01"
+              required
             />
             <button
               type="button"
@@ -392,9 +397,7 @@ export default function FieldForm({ field }: { field?: Field }) {
                   key={product._id}
                   className="flex justify-between items-center mb-2"
                 >
-                  <span>
-                    {product.name} - {product.category}
-                  </span>
+                  <span>{product.name}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveProduct(product._id)}
