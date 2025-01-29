@@ -10,3 +10,4 @@ export { default as Transaction } from "@/models/Transaction";
 export { default as Inventory } from "@/models/Inventory";
 export { default as Loan } from "@/models/Loan";
 export { default as Product } from "@/models/Product";
+export { default as Fertilizer } from "@/models/Fertilizer";

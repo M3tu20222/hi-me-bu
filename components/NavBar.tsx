@@ -74,6 +74,12 @@ export default function NavBar() {
               >
                 Ürün Yönetimi
               </Link>
+              <Link
+                href="/admin/fertilizers"
+                className="text-neon-blue hover:text-neon-pink"
+              >
+                Gübre Yönetimi
+              </Link>
             </>
           )}
           {session.user.role === "Ortak" && (
