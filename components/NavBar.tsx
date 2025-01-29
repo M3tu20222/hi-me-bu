@@ -68,6 +68,12 @@ export default function NavBar() {
               >
                 Tarla Yönetimi
               </Link>
+              <Link
+                href="/admin/products"
+                className="text-neon-blue hover:text-neon-pink"
+              >
+                Ürün Yönetimi
+              </Link>
             </>
           )}
           {session.user.role === "Ortak" && (

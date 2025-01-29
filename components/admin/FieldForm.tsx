@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { Field } from "@/types/field";
+import type { Field, FieldOwnership } from "@/types/field";
 import type { User } from "@/types/user";
 import type { Season } from "@/types/season";
 import type { Well } from "@/types/well";
+import type { Product } from "@/types/product";
 
 export default function FieldForm({ field }: { field?: Field }) {
   const [name, setName] = useState(field?.name ?? "");
   const [size, setSize] = useState(field?.size ?? 0);
   const [location, setLocation] = useState(field?.location ?? "");
-  const [crop, setCrop] = useState(field?.crop ?? "");
   const [status, setStatus] = useState<Field["status"]>(field?.status ?? "Boş");
   const [isIrrigated, setIsIrrigated] = useState(field?.isIrrigated ?? false);
   const [season, setSeason] = useState(field?.season?._id ?? "");
@@ -19,12 +19,14 @@ export default function FieldForm({ field }: { field?: Field }) {
   const [isShared, setIsShared] = useState(field?.isShared ?? false);
   const [blockParcel, setBlockParcel] = useState(field?.blockParcel ?? "");
   const [well, setWell] = useState(field?.well?._id ?? "");
-  const [owners, setOwners] = useState<
-    { userId: string; percentage: number }[]
-  >([]);
+  const [owners, setOwners] = useState<FieldOwnership[]>(field?.owners ?? []);
   const [users, setUsers] = useState<User[]>([]);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [wells, setWells] = useState<Well[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [fieldProducts, setFieldProducts] = useState<Product[]>(
+    field?.products ?? []
+  );
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -33,41 +35,74 @@ export default function FieldForm({ field }: { field?: Field }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usersResponse, seasonsResponse, wellsResponse] =
-          await Promise.all([
-            fetch("/api/users"),
-            fetch("/api/seasons"),
-            fetch("/api/wells"),
-          ]);
-        if (!usersResponse.ok || !seasonsResponse.ok || !wellsResponse.ok) {
+        const [
+          usersResponse,
+          seasonsResponse,
+          wellsResponse,
+          productsResponse,
+        ] = await Promise.all([
+          fetch("/api/users"),
+          fetch("/api/seasons"),
+          fetch("/api/wells"),
+          fetch("/api/products"),
+        ]);
+        if (
+          !usersResponse.ok ||
+          !seasonsResponse.ok ||
+          !wellsResponse.ok ||
+          !productsResponse.ok
+        ) {
           throw new Error("Veri yüklenirken bir hata oluştu");
         }
-        const [usersData, seasonsData, wellsData] = await Promise.all([
-          usersResponse.json(),
-          seasonsResponse.json(),
-          wellsResponse.json(),
-        ]);
+        const usersData = await usersResponse.json();
+        const seasonsData = await seasonsResponse.json();
+        const wellsData = await wellsResponse.json();
+        const productsData = await productsResponse.json();
+
         setUsers(usersData);
         setSeasons(seasonsData);
         setWells(wellsData);
+        setProducts(productsData);
+
+        if (field) {
+          const fieldResponse = await fetch(`/api/fields/${field._id}`);
+          if (fieldResponse.ok) {
+            const fieldData = await fieldResponse.json();
+            setFieldProducts(fieldData.products || []);
+            setOwners(fieldData.owners || []);
+          }
+        }
       } catch (err) {
         console.error("Veri yüklenirken hata:", err);
       }
     };
 
     fetchData();
-  }, []);
+  }, [field]);
+
+  const validateOwners = () => {
+    return owners.every(
+      (owner) => owner.userId && owner.ownershipPercentage > 0
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
+    if (!validateOwners()) {
+      setError(
+        "Lütfen tüm tarla sahiplerini ve sahiplik yüzdelerini doğru şekilde giriniz."
+      );
+      setIsLoading(false);
+      return;
+    }
+
     const fieldData = {
       name,
       size,
       location,
-      crop,
       status,
       isIrrigated,
       season,
@@ -76,21 +111,22 @@ export default function FieldForm({ field }: { field?: Field }) {
       blockParcel,
       well,
       owners,
+      products: fieldProducts.map((p) => p._id),
     };
 
-    const url = field ? `/api/fields/${field._id}` : "/api/fields";
-    const method = field ? "PUT" : "POST";
-
     try {
-      const response = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(fieldData),
-      });
+      const fieldResponse = await fetch(
+        field ? `/api/fields/${field._id}` : "/api/fields",
+        {
+          method: field ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(fieldData),
+        }
+      );
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Bir hata oluştu");
+      if (!fieldResponse.ok) {
+        const data = await fieldResponse.json();
+        throw new Error(data.error || "Tarla kaydedilirken bir hata oluştu");
       }
 
       router.push("/admin/fields");
@@ -102,22 +138,33 @@ export default function FieldForm({ field }: { field?: Field }) {
     }
   };
 
+  const handleAddProduct = (productId: string) => {
+    const productToAdd = products.find((p) => p._id === productId);
+    if (productToAdd && !fieldProducts.some((p) => p._id === productId)) {
+      setFieldProducts([...fieldProducts, productToAdd]);
+    }
+  };
+
+  const handleRemoveProduct = (productId: string) => {
+    setFieldProducts(fieldProducts.filter((p) => p._id !== productId));
+  };
+
   const handleOwnerChange = (
     index: number,
-    field: "userId" | "percentage",
+    field: "userId" | "ownershipPercentage",
     value: string
   ) => {
     const newOwners = [...owners];
     if (field === "userId") {
       newOwners[index].userId = value;
     } else {
-      newOwners[index].percentage = Number(value);
+      newOwners[index].ownershipPercentage = Number(value) || 0; // Eğer geçersiz bir değer girilirse 0 olarak ayarla
     }
     setOwners(newOwners);
   };
 
   const addOwner = () => {
-    setOwners([...owners, { userId: "", percentage: 0 }]);
+    setOwners([...owners, { userId: "", ownershipPercentage: 0 }]);
   };
 
   const removeOwner = (index: number) => {
@@ -171,18 +218,6 @@ export default function FieldForm({ field }: { field?: Field }) {
             onChange={(e) => setLocation(e.target.value)}
             className="w-full p-2 bg-gray-800 rounded border border-neon-blue focus:border-neon-pink"
             required
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="crop" className="block text-neon-blue mb-2">
-            Ürün
-          </label>
-          <input
-            type="text"
-            id="crop"
-            value={crop}
-            onChange={(e) => setCrop(e.target.value)}
-            className="w-full p-2 bg-gray-800 rounded border border-neon-blue focus:border-neon-pink"
           />
         </div>
         <div className="mb-4">
@@ -282,54 +317,97 @@ export default function FieldForm({ field }: { field?: Field }) {
         </label>
       </div>
 
-      {isShared && (
-        <div className="mb-4">
-          <h3 className="text-neon-blue mb-2">Tarla Sahipleri</h3>
-          {owners.map((owner, index) => (
-            <div key={index} className="flex items-center mb-2">
-              <select
-                value={owner.userId}
-                onChange={(e) =>
-                  handleOwnerChange(index, "userId", e.target.value)
-                }
-                className="w-1/2 p-2 bg-gray-800 rounded border border-neon-blue focus:border-neon-pink mr-2"
-              >
-                <option value="">Sahip Seçin</option>
-                {users.map((user) => (
-                  <option key={user._id} value={user._id}>
-                    {user.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                value={owner.percentage}
-                onChange={(e) =>
-                  handleOwnerChange(index, "percentage", e.target.value)
-                }
-                className="w-1/4 p-2 bg-gray-800 rounded border border-neon-blue focus:border-neon-pink mr-2"
-                placeholder="Yüzde"
-                min="0"
-                max="100"
-              />
-              <button
-                type="button"
-                onClick={() => removeOwner(index)}
-                className="bg-red-500 text-white p-2 rounded"
-              >
-                Kaldır
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            onClick={addOwner}
-            className="bg-neon-blue text-white p-2 rounded mt-2"
-          >
-            Sahip Ekle
-          </button>
+      <div className="mb-4">
+        <h3 className="text-neon-blue mb-2">Tarla Sahipleri</h3>
+        {owners.map((owner, index) => (
+          <div key={index} className="flex items-center mb-2">
+            <select
+              value={owner.userId}
+              onChange={(e) =>
+                handleOwnerChange(index, "userId", e.target.value)
+              }
+              className="w-1/2 p-2 bg-gray-800 rounded border border-neon-blue focus:border-neon-pink mr-2"
+            >
+              <option value="">Sahip Seçin</option>
+              {users.map((user) => (
+                <option key={user._id} value={user._id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+            <input
+              type="number"
+              value={owner.ownershipPercentage}
+              onChange={(e) =>
+                handleOwnerChange(index, "ownershipPercentage", e.target.value)
+              }
+              className="w-1/4 p-2 bg-gray-800 rounded border border-neon-blue focus:border-neon-pink mr-2"
+              placeholder="Yüzde"
+              min="0"
+              max="100"
+            />
+            <button
+              type="button"
+              onClick={() => removeOwner(index)}
+              className="bg-red-500 text-white p-2 rounded"
+            >
+              Kaldır
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={addOwner}
+          className="bg-neon-blue text-white p-2 rounded mt-2"
+        >
+          Sahip Ekle
+        </button>
+      </div>
+
+      <div className="mb-4">
+        <h3 className="text-neon-blue mb-2">Ürün Bilgileri</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="product" className="block text-neon-blue mb-2">
+              Ürün Ekle
+            </label>
+            <select
+              id="product"
+              onChange={(e) => handleAddProduct(e.target.value)}
+              className="w-full p-2 bg-gray-800 rounded border border-neon-blue focus:border-neon-pink"
+            >
+              <option value="">Seçiniz</option>
+              {products.map((product) => (
+                <option key={product._id} value={product._id}>
+                  {product.name} - {product.category}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <h4 className="text-neon-blue mb-2">Seçili Ürünler</h4>
+            <ul>
+              {fieldProducts.map((product) => (
+                <li
+                  key={product._id}
+                  className="flex justify-between items-center mb-2"
+                >
+                  <span>
+                    {product.name} - {product.category}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveProduct(product._id)}
+                    className="bg-red-500 text-white p-1 rounded"
+                  >
+                    Kaldır
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-      )}
+      </div>
 
       <button
         type="submit"

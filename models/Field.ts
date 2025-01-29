@@ -16,6 +16,8 @@ const FieldSchema = new mongoose.Schema(
     isRented: { type: Boolean, default: false },
     isShared: { type: Boolean, default: false },
     blockParcel: { type: String },
+    products: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+    well: { type: mongoose.Schema.Types.ObjectId, ref: "Well" },
   },
   { timestamps: true }
 );
