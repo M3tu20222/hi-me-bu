@@ -3,49 +3,70 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
-import type { Field } from "@/types/field";
-import { useSession } from "next-auth/react";
+import ProductForm from "./ProductForm";
 
-export default function FieldList() {
-  const { data: session } = useSession();
-  const [fields, setFields] = useState<Field[]>([]);
+interface Product {
+  _id: string;
+  name: string;
+  category: string;
+  unit: string;
+  isActive: boolean;
+}
+
+export default function ProductList() {
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const isAdmin = session?.user?.role === "Admin";
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    const fetchFields = async () => {
-      try {
-        const response = await fetch("/api/fields");
-        if (!response.ok) {
-          throw new Error("Tarlalar yüklenirken bir hata oluştu");
-        }
-        const data = await response.json();
-        setFields(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Bir hata oluştu");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchFields();
+    fetchProducts();
   }, []);
 
-  const handleDelete = async (fieldId: string) => {
-    if (window.confirm("Bu tarlayı silmek istediğinizden emin misiniz?")) {
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("/api/products");
+      if (!response.ok) {
+        throw new Error("Ürünler yüklenirken bir hata oluştu");
+      }
+      const data = await response.json();
+      setProducts(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bir hata oluştu");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (productId: string) => {
+    if (window.confirm("Bu ürünü silmek istediğinizden emin misiniz?")) {
       try {
-        const response = await fetch(`/api/fields/${fieldId}`, {
+        const response = await fetch(`/api/products/${productId}`, {
           method: "DELETE",
         });
         if (!response.ok) {
-          throw new Error("Tarla silinirken bir hata oluştu");
+          throw new Error("Ürün silinirken bir hata oluştu");
         }
-        setFields(fields.filter((field) => field._id !== fieldId));
+        setProducts(products.filter((product) => product._id !== productId));
       } catch (err) {
         setError(err instanceof Error ? err.message : "Bir hata oluştu");
       }
     }
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+  };
+
+  const handleProductUpdated = (updatedProduct: Product) => {
+    setProducts(
+      products.map((p) => (p._id === updatedProduct._id ? updatedProduct : p))
+    );
+    setEditingProduct(null);
+  };
+
+  const handleProductCreated = (newProduct: Product) => {
+    setProducts([...products, newProduct]);
   };
 
   if (isLoading) return <div className="text-neon-pink">Yükleniyor...</div>;
@@ -53,77 +74,62 @@ export default function FieldList() {
 
   return (
     <div className="bg-gray-900 shadow-lg rounded-lg overflow-hidden cyberpunk-border">
-      <div className="flex justify-between items-center p-4 border-b border-neon-purple">
-        <h2 className="text-xl font-semibold cyberpunk-text">Tarla Listesi</h2>
-        {isAdmin && (
-          <Link href="/admin/fields/add" className="cyberpunk-button">
-            Yeni Tarla Ekle
-          </Link>
-        )}
+      <div className="p-4 border-b border-neon-purple">
+        <h2 className="text-xl font-semibold cyberpunk-text mb-4">
+          Ürün Listesi
+        </h2>
+        <ProductForm onProductCreated={handleProductCreated} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-800">
             <tr>
               <th className="p-3 text-left text-neon-blue">Ad</th>
-              <th className="p-3 text-left text-neon-blue">Boyut (Dönüm)</th>
-              <th className="p-3 text-left text-neon-blue">Konum</th>
-              <th className="p-3 text-left text-neon-blue">Ürün</th>
-              <th className="p-3 text-left text-neon-blue">Sezon</th>
+              <th className="p-3 text-left text-neon-blue">Kategori</th>
+              <th className="p-3 text-left text-neon-blue">Birim</th>
               <th className="p-3 text-left text-neon-blue">Durum</th>
-              <th className="p-3 text-left text-neon-blue">Sulanan</th>
-              <th className="p-3 text-left text-neon-blue">Kiralık</th>
-              <th className="p-3 text-left text-neon-blue">Ada-Parsel</th>
-              {isAdmin && (
-                <th className="p-3 text-left text-neon-blue">İşlemler</th>
-              )}
+              <th className="p-3 text-left text-neon-blue">İşlemler</th>
             </tr>
           </thead>
           <tbody>
-            {fields.map((field) => (
-              <tr key={field._id} className="border-b border-gray-800">
-                <td className="p-3 text-neon-pink">{field.name}</td>
-                <td className="p-3 text-white">{field.size}</td>
-                <td className="p-3 text-white">{field.location}</td>
-                <td className="p-3 text-white">
-                  {field.products && field.products.length > 0
-                    ? field.products
-                        .map((product: any) => product.name)
-                        .join(", ")
-                    : "Belirlenmemiş"}
+            {products.map((product) => (
+              <tr key={product._id} className="border-b border-gray-800">
+                <td className="p-3 text-neon-pink">{product.name}</td>
+                <td className="p-3 text-white">{product.category}</td>
+                <td className="p-3 text-white">{product.unit}</td>
+                <td className="p-3 text-neon-blue">
+                  {product.isActive ? "Aktif" : "Pasif"}
                 </td>
-                <td className="p-3 text-white">
-                  {field.season?.name || "Belirlenmemiş"}
+                <td className="p-3">
+                  <button
+                    onClick={() => handleEdit(product)}
+                    className="text-neon-blue hover:text-neon-pink mr-2"
+                  >
+                    <Edit size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product._id)}
+                    className="text-neon-pink hover:text-neon-blue"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </td>
-                <td className="p-3 text-neon-blue">{field.status}</td>
-                <td className="p-3 text-white">
-                  {field.isIrrigated ? "Evet" : "Hayır"}
-                </td>
-                <td className="p-3 text-white">
-                  {field.isRented ? "Evet" : "Hayır"}
-                </td>
-                <td className="p-3 text-white">{field.blockParcel || "-"}</td>
-                {isAdmin && (
-                  <td className="p-3">
-                    <Link
-                      href={`/admin/fields/edit/${field._id}`}
-                      className="text-neon-blue hover:text-neon-pink mr-2"
-                    >
-                      <Edit size={18} />
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(field._id)}
-                      className="text-neon-pink hover:text-neon-blue"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {editingProduct && (
+        <div className="p-4 border-t border-neon-purple">
+          <h3 className="text-lg font-semibold cyberpunk-text mb-4">
+            Ürün Düzenle
+          </h3>
+          <ProductForm
+            product={editingProduct}
+            onProductUpdated={handleProductUpdated}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import ProductList from "@/components/admin/ProductList";
+import ProductList from "@/components/admin/ProductList"; // FieldList değil, ProductList olmalı
 
 export default async function AdminProductsPage() {
   const session = await getServerSession(authOptions);
