@@ -1,87 +1,99 @@
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { User, Field, Well, Product } from "@/lib/models";
-import dbConnect from "@/lib/dbConnect";
+"use client";
 
-export default async function Dashboard() {
-  const session = await getServerSession(authOptions);
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
-  if (!session?.user) {
-    redirect("/login");
+interface DashboardData {
+  totalFields: number;
+  activeFields: number;
+  totalWells: number;
+}
+
+export default function DashboardPage() {
+  const { data: session } = useSession();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await fetch("/api/dashboard");
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+        const data = await response.json();
+        setDashboardData(data);
+      } catch (err) {
+        setError("Dashboard verileri yüklenirken bir hata oluştu");
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-neon-blue" />
+      </div>
+    );
   }
 
-  await dbConnect();
-
-  const { name, role } = session.user;
-
-  const dashboardData = {
-    totalFields: 0,
-    totalWells: 0,
-    totalProducts: 0,
-    activeFields: 0,
-  };
-
-  if (role === "Admin") {
-    dashboardData.totalFields = await Field.countDocuments();
-    dashboardData.totalWells = await Well.countDocuments();
-    dashboardData.totalProducts = await Product.countDocuments();
-    dashboardData.activeFields = await Field.countDocuments({
-      status: "Ekili",
-    });
-  } else if (role === "Ortak") {
-    const user = await User.findById(session.user.id);
-    dashboardData.totalFields = await Field.countDocuments({
-      _id: { $in: user.assignedFields },
-    });
-    dashboardData.totalWells = await Well.countDocuments({
-      _id: { $in: user.assignedWells },
-    });
-    dashboardData.activeFields = await Field.countDocuments({
-      _id: { $in: user.assignedFields },
-      status: "Ekili",
-    });
+  if (error) {
+    return <div className="text-red-500 text-center">{error}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black text-white p-8">
-      <h1 className="text-4xl font-bold mb-6 text-neon-blue">
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6 text-neon-blue">
         Gösterge Paneli
       </h1>
-      <p className="text-xl mb-4">Hoş geldiniz, {name}!</p>
-      <p className="text-neon-pink mb-6">Rol: {role}</p>
+      <p className="text-xl mb-8 text-white">
+        Hoş geldiniz, {session?.user?.name || "Kullanıcı"}!
+      </p>
+      <p className="text-lg mb-8 text-neon-pink">Rol: {session?.user?.role}</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-bold text-neon-blue mb-2">
-            Toplam Tarla
-          </h2>
-          <p className="text-4xl text-neon-pink">{dashboardData.totalFields}</p>
-        </div>
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-bold text-neon-blue mb-2">
-            Toplam Kuyu
-          </h2>
-          <p className="text-4xl text-neon-pink">{dashboardData.totalWells}</p>
-        </div>
-        {role === "Admin" && (
-          <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold text-neon-blue mb-2">
-              Toplam Ürün
-            </h2>
-            <p className="text-4xl text-neon-pink">
-              {dashboardData.totalProducts}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-gray-800 border-neon-blue">
+          <CardHeader>
+            <CardTitle className="text-neon-blue">Toplam Tarla</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-white">
+              {dashboardData?.totalFields || 0}
             </p>
-          </div>
-        )}
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-bold text-neon-blue mb-2">
-            Aktif Tarlalar
-          </h2>
-          <p className="text-4xl text-neon-pink">
-            {dashboardData.activeFields}
-          </p>
-        </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-neon-blue">
+          <CardHeader>
+            <CardTitle className="text-neon-blue">Toplam Kuyu</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-white">
+              {dashboardData?.totalWells || 0}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-neon-blue">
+          <CardHeader>
+            <CardTitle className="text-neon-blue">Aktif Tarlalar</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold text-white">
+              {dashboardData?.activeFields || 0}
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

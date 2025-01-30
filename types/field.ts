@@ -1,5 +1,4 @@
 import type { Document } from "mongoose";
-import type { User } from "./user";
 import type { Well } from "./well";
 import type { SimpleProduct } from "./product";
 import type { Season } from "./season";
