@@ -2,35 +2,75 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Edit, Trash2 } from "lucide-react";
-import type { Field } from "@/types/field";
+import { Edit, Trash2, Check, X } from "lucide-react";
 import { useSession } from "next-auth/react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+interface Product {
+  _id: string;
+  name: string;
+  category: string;
+  unit: string;
+  isActive: boolean;
+}
+
+interface Season {
+  _id: string;
+  name: string;
+}
+
+interface Field {
+  _id: string;
+  name: string;
+  size: number;
+  location: string;
+  products: Product[];
+  season: Season;
+  status: "Boş" | "Sürüldü" | "Hazırlanıyor" | "Ekili";
+  isIrrigated: boolean;
+  isRented: boolean;
+  blockParcel: string;
+}
+
+const statusColors = {
+  Boş: "text-red-500",
+  Sürüldü: "text-orange-500",
+  Hazırlanıyor: "text-yellow-500",
+  Ekili: "text-green-500",
+};
 
 export default function FieldList() {
   const { data: session } = useSession();
   const [fields, setFields] = useState<Field[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const isAdmin = session?.user?.role === "Admin";
 
   useEffect(() => {
-    const fetchFields = async () => {
-      try {
-        const response = await fetch("/api/fields");
-        if (!response.ok) {
-          throw new Error("Tarlalar yüklenirken bir hata oluştu");
-        }
-        const data = await response.json();
-        setFields(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Bir hata oluştu");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchFields();
   }, []);
+
+  const fetchFields = async () => {
+    try {
+      const response = await fetch("/api/fields");
+      if (!response.ok) {
+        throw new Error("Tarlalar yüklenirken bir hata oluştu");
+      }
+      const data = await response.json();
+      setFields(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Bir hata oluştu");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDelete = async (fieldId: string) => {
     if (window.confirm("Bu tarlayı silmek istediğinizden emin misiniz?")) {
@@ -52,78 +92,100 @@ export default function FieldList() {
   if (error) return <div className="text-red-500">{error}</div>;
 
   return (
-    <div className="bg-gray-900 shadow-lg rounded-lg overflow-hidden cyberpunk-border">
-      <div className="flex justify-between items-center p-4 border-b border-neon-purple">
-        <h2 className="text-xl font-semibold cyberpunk-text">Tarla Listesi</h2>
-        {isAdmin && (
-          <Link href="/admin/fields/add" className="cyberpunk-button">
-            Yeni Tarla Ekle
-          </Link>
-        )}
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-800">
-            <tr>
-              <th className="p-3 text-left text-neon-blue">Ad</th>
-              <th className="p-3 text-left text-neon-blue">Boyut (Dönüm)</th>
-              <th className="p-3 text-left text-neon-blue">Konum</th>
-              <th className="p-3 text-left text-neon-blue">Ürün</th>
-              <th className="p-3 text-left text-neon-blue">Sezon</th>
-              <th className="p-3 text-left text-neon-blue">Durum</th>
-              <th className="p-3 text-left text-neon-blue">Sulanan</th>
-              <th className="p-3 text-left text-neon-blue">Kiralık</th>
-              <th className="p-3 text-left text-neon-blue">Ada-Parsel</th>
-              {isAdmin && (
-                <th className="p-3 text-left text-neon-blue">İşlemler</th>
-              )}
-            </tr>
-          </thead>
-          <tbody>
+    <Card className="bg-gray-900 border-gray-800">
+      <CardHeader className="border-b border-gray-800">
+        <div className="flex justify-between items-center">
+          <CardTitle className="text-xl font-semibold text-white">
+            Tarla Listesi
+          </CardTitle>
+          {session?.user.role === "Admin" && (
+            <Link href="/admin/fields/add" className="cyberpunk-button">
+              Yeni Tarla Ekle
+            </Link>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-gray-800">
+              <TableHead className="text-neon-blue">Ad</TableHead>
+              <TableHead className="text-neon-blue">Boyut (Dönüm)</TableHead>
+              <TableHead className="text-neon-blue">Konum</TableHead>
+              <TableHead className="text-neon-blue">Ürün</TableHead>
+              <TableHead className="text-neon-blue">Sezon</TableHead>
+              <TableHead className="text-neon-blue">Durum</TableHead>
+              <TableHead className="text-neon-blue">Sulanan</TableHead>
+              <TableHead className="text-neon-blue">Kiralık</TableHead>
+              <TableHead className="text-neon-blue">Ada-Parsel</TableHead>
+              <TableHead className="text-neon-blue">İşlemler</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {fields.map((field) => (
-              <tr key={field._id} className="border-b border-gray-800">
-                <td className="p-3 text-neon-pink">{field.name}</td>
-                <td className="p-3 text-white">{field.size}</td>
-                <td className="p-3 text-white">{field.location}</td>
-                <td className="p-3 text-white">
+              <TableRow key={field._id} className="border-gray-800">
+                <TableCell className="text-white">
+                  {field.name || "-"}
+                </TableCell>
+                <TableCell className="text-white">
+                  {field.size ? field.size.toFixed(3) : "-"}
+                </TableCell>
+                <TableCell className="text-white">
+                  {field.location || "-"}
+                </TableCell>
+                <TableCell className="text-white">
                   {field.products && field.products.length > 0
-                    ? field.products
-                        .map((product: any) => product.name)
-                        .join(", ")
-                    : "Belirlenmemiş"}
-                </td>
-                <td className="p-3 text-white">
-                  {field.season?.name || "Belirlenmemiş"}
-                </td>
-                <td className="p-3 text-neon-blue">{field.status}</td>
-                <td className="p-3 text-white">
-                  {field.isIrrigated ? "Evet" : "Hayır"}
-                </td>
-                <td className="p-3 text-white">
-                  {field.isRented ? "Evet" : "Hayır"}
-                </td>
-                <td className="p-3 text-white">{field.blockParcel || "-"}</td>
-                {isAdmin && (
-                  <td className="p-3">
-                    <Link
-                      href={`/admin/fields/edit/${field._id}`}
-                      className="text-neon-blue hover:text-neon-pink mr-2"
-                    >
-                      <Edit size={18} />
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(field._id)}
-                      className="text-neon-pink hover:text-neon-blue"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                )}
-              </tr>
+                    ? field.products.map((p) => p.name).join(", ")
+                    : field.status === "Ekili"
+                    ? "Belirtilmemiş"
+                    : "-"}
+                </TableCell>
+                <TableCell className="text-white">
+                  {field.season
+                    ? field.season.name.replace(" Sezonu", "")
+                    : "-"}
+                </TableCell>
+                <TableCell
+                  className={statusColors[field.status] || "text-white"}
+                >
+                  {field.status || "-"}
+                </TableCell>
+                <TableCell>
+                  {field.isIrrigated ? (
+                    <Check className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <X className="h-5 w-5 text-red-500" />
+                  )}
+                </TableCell>
+                <TableCell>
+                  {field.isRented ? (
+                    <Check className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <X className="h-5 w-5 text-red-500" />
+                  )}
+                </TableCell>
+                <TableCell className="text-white">
+                  {field.blockParcel || "-"}
+                </TableCell>
+                <TableCell className="space-x-2">
+                  <Link
+                    href={`/admin/fields/edit/${field._id}`}
+                    className="text-neon-blue hover:text-neon-pink inline-block"
+                  >
+                    <Edit size={18} />
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(field._id)}
+                    className="text-neon-pink hover:text-neon-blue inline-block"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

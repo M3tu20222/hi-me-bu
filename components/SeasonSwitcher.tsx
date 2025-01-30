@@ -38,6 +38,10 @@ export function SeasonSwitcher({
   );
   const router = useRouter();
 
+  const formatSeasonName = (name: string) => {
+    return name.replace(" Sezonu", "");
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen} {...props}>
       <PopoverTrigger asChild>
@@ -46,19 +50,27 @@ export function SeasonSwitcher({
           role="combobox"
           aria-expanded={open}
           aria-label="Sezon seç"
-          className="w-[200px] justify-between"
+          className="w-[200px] justify-between bg-gray-800 border-gray-700 text-white"
         >
           {selectedSeason
-            ? seasons.find((season) => season._id === selectedSeason)?.name
+            ? formatSeasonName(
+                seasons.find((season) => season._id === selectedSeason)?.name ||
+                  ""
+              )
             : "Sezon seç..."}
           <CaretSortIcon className="ml-auto h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder="Sezon ara..." className="h-9" />
+      <PopoverContent className="w-[200px] p-0 bg-gray-800 border-gray-700">
+        <Command className="bg-gray-800">
+          <CommandInput
+            placeholder="Sezon ara..."
+            className="h-9 bg-gray-800 text-white"
+          />
           <CommandList>
-            <CommandEmpty>Sezon bulunamadı.</CommandEmpty>
+            <CommandEmpty className="text-gray-400">
+              Sezon bulunamadı.
+            </CommandEmpty>
             <CommandGroup>
               {seasons.map((season) => (
                 <CommandItem
@@ -68,8 +80,9 @@ export function SeasonSwitcher({
                     setOpen(false);
                     router.push(`/dashboard?season=${season._id}`);
                   }}
+                  className="text-white hover:bg-gray-700"
                 >
-                  {season.name}
+                  {formatSeasonName(season.name)}
                   <CheckIcon
                     className={cn(
                       "ml-auto h-4 w-4",

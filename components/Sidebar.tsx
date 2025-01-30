@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
   Home,
   Users,
@@ -14,11 +14,16 @@ import {
   Map,
   Sprout,
   FlaskRoundIcon as Flask,
+  LogOut,
 } from "lucide-react";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
 
   const routes = [
     {
@@ -93,7 +98,7 @@ export function Sidebar() {
         <Link href="/dashboard" className="flex items-center pl-3 mb-14">
           <h1 className="text-2xl font-bold">Çiftçilik Sistemi</h1>
         </Link>
-        <ScrollArea className="flex-1 h-[calc(100vh-8rem)]">
+        <ScrollArea className="flex-1 h-[calc(100vh-14rem)]">
           <div className="space-y-1">
             {routes.map((route) => (
               <Button
@@ -113,6 +118,16 @@ export function Sidebar() {
             ))}
           </div>
         </ScrollArea>
+        <div className="mt-auto pt-4 border-t border-gray-800">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-5 w-5 mr-3" />
+            Çıkış Yap
+          </Button>
+        </div>
       </div>
     </div>
   );
