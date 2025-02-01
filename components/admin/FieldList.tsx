@@ -156,6 +156,7 @@ export default function FieldList() {
                   <TableHead className="w-[100px]">Sulanan</TableHead>
                   <TableHead className="w-[100px]">Kiralık</TableHead>
                   <TableHead className="w-[140px]">Ada-Parsel</TableHead>
+                  <TableHead className="w-[100px]">Sezon</TableHead>
                   {isAdmin && (
                     <TableHead className="w-[100px]">İşlemler</TableHead>
                   )}
@@ -229,6 +230,15 @@ export default function FieldList() {
                       )}
                     </TableCell>
                     <TableCell>{field.blockParcel || "-"}</TableCell>
+                    <TableCell>
+                      {field.season?.year
+                        ? `${field.season.year.toString().slice(-2)}-${(
+                            field.season.year + 1
+                          )
+                            .toString()
+                            .slice(-2)}`
+                        : "Belirlenmemiş"}
+                    </TableCell>
                     {isAdmin && (
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -321,6 +331,18 @@ export default function FieldList() {
                     <span className="text-gray-400">Ada-Parsel:</span>
                     <span className="text-white ml-1">
                       {field.blockParcel || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Sezon:</span>
+                    <span className="text-white ml-1">
+                      {field.season?.year
+                        ? `${field.season.year.toString().slice(-2)}-${(
+                            field.season.year + 1
+                          )
+                            .toString()
+                            .slice(-2)}`
+                        : "Belirlenmemiş"}
                     </span>
                   </div>
                 </div>
