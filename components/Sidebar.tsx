@@ -97,12 +97,12 @@ export function Sidebar() {
   }
 
   const sidebarContent = (
-    <div className="space-y-4 py-4 flex flex-col h-full bg-[#111827] text-white">
-      <div className="px-3 py-2 flex-1">
-        <Link href="/dashboard" className="flex items-center pl-3 mb-14">
+    <div className="flex h-full flex-col bg-[#0a0c10] text-white">
+      <div className="flex-1 px-3 py-4">
+        <Link href="/dashboard" className="flex items-center pl-3 mb-10">
           <h1 className="text-2xl font-bold">Çiftçilik Sistemi</h1>
         </Link>
-        <ScrollArea className="flex-1 h-[calc(100vh-14rem)]">
+        <ScrollArea className="h-[calc(100vh-10rem)]">
           <div className="space-y-1">
             {routes.map((route) => (
               <Button
@@ -123,7 +123,7 @@ export function Sidebar() {
           </div>
         </ScrollArea>
       </div>
-      <div className="mt-auto pt-4 border-t border-gray-800 px-3">
+      <div className="mt-auto p-4 border-t border-gray-800">
         <Button
           variant="ghost"
           className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
@@ -139,13 +139,13 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <div className="hidden md:flex h-full w-full flex-col fixed">
+      <div className="hidden md:flex h-full w-full flex-col bg-[#0a0c10]">
         {sidebarContent}
       </div>
 
       {/* Mobile sidebar */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-72 p-0 bg-[#111827]">
+        <SheetContent side="left" className="w-72 p-0 bg-[#0a0c10]">
           <Button
             variant="ghost"
             size="icon"

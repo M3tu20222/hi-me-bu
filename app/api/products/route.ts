@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
-import { Product } from "@/lib/models";
+import Product from "@/models/Product";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
@@ -15,7 +15,7 @@ export async function GET() {
 
   try {
     await dbConnect();
-    const products = await Product.find({ isActive: true });
+    const products = await Product.find({}).populate("season").lean();
     return NextResponse.json(products);
   } catch (error) {
     console.error("Ürünler yüklenirken hata:", error);

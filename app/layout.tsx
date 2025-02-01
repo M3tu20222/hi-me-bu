@@ -38,15 +38,21 @@ export default async function RootLayout({
         <SessionProvider session={session}>
           <SeasonProvider initialSeason={currentSeason}>
             <SidebarProvider defaultOpen={false}>
-              <div className="min-h-screen bg-gray-900">
+              <div className="flex min-h-screen bg-[#0a0c10]">
+                {/* Mobile Navigation */}
                 <div className="md:hidden">
                   <MobileNav />
                 </div>
-                <div className="md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-80">
+
+                {/* Sidebar */}
+                <div className="hidden md:flex md:w-72 md:flex-col md:fixed md:inset-y-0">
                   <Sidebar />
                 </div>
-                <main className="md:pl-72">
-                  <div className="flex items-center justify-between px-4 py-4 bg-gray-900 border-b border-gray-800">
+
+                {/* Main Content */}
+                <div className="flex-1 md:pl-72">
+                  {/* Header */}
+                  <header className="sticky top-0 z-40 flex items-center justify-between px-4 py-4 bg-[#0a0c10] border-b border-[#1b1f2a]">
                     <h1 className="text-2xl font-semibold text-white ml-12 md:ml-0">
                       Çiftçilik Sistemi
                     </h1>
@@ -56,9 +62,15 @@ export default async function RootLayout({
                         currentSeason={currentSeason}
                       />
                     )}
-                  </div>
-                  <div className="p-4 bg-gray-900 min-h-screen">{children}</div>
-                </main>
+                  </header>
+
+                  {/* Page Content */}
+                  <main className="flex-1">
+                    <div className="container mx-auto p-4 bg-[#0a0c10] min-h-[calc(100vh-4rem)]">
+                      {children}
+                    </div>
+                  </main>
+                </div>
               </div>
             </SidebarProvider>
           </SeasonProvider>

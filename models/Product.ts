@@ -1,23 +1,25 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, type Document } from "mongoose";
+import type { Product } from "@/types/product";
 
-const ProductSchema = new mongoose.Schema(
+const ProductSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
+    field: { type: Schema.Types.ObjectId, ref: "Field" },
+    type: String,
+    plantingDate: Date,
+    harvestDate: Date,
+    revenue: Number,
     category: { type: String, required: true },
     unit: { type: String, required: true },
     isActive: { type: Boolean, default: true },
-    type: { type: String, required: false },
-    plantingDate: { type: Date, required: false },
-    field: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Field",
-      required: false,
-    },
-    harvestDate: { type: Date, required: false },
-    revenue: { type: Number, required: false },
+    brand: { type: String, required: true },
+    season: { type: Schema.Types.ObjectId, ref: "Season" },
   },
   { timestamps: true }
 );
 
-export default mongoose.models.Product ||
-  mongoose.model("Product", ProductSchema);
+const ProductModel =
+  mongoose.models.Product ||
+  mongoose.model<Product & Document>("Product", ProductSchema);
+
+export default ProductModel;
