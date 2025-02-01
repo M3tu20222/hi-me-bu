@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useSession, signOut } from "next-auth/react";
 import {
   Home,
@@ -15,11 +16,14 @@ import {
   Sprout,
   FlaskRoundIcon as Flask,
   LogOut,
+  X,
 } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { open, setOpen } = useSidebar();
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
@@ -92,7 +96,7 @@ export function Sidebar() {
     );
   }
 
-  return (
+  const sidebarContent = (
     <div className="space-y-4 py-4 flex flex-col h-full bg-[#111827] text-white">
       <div className="px-3 py-2 flex-1">
         <Link href="/dashboard" className="flex items-center pl-3 mb-14">
@@ -118,17 +122,41 @@ export function Sidebar() {
             ))}
           </div>
         </ScrollArea>
-        <div className="mt-auto pt-4 border-t border-gray-800">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-5 w-5 mr-3" />
-            Çıkış Yap
-          </Button>
-        </div>
+      </div>
+      <div className="mt-auto pt-4 border-t border-gray-800 px-3">
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-5 w-5 mr-3" />
+          Çıkış Yap
+        </Button>
       </div>
     </div>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <div className="hidden md:flex h-full w-full flex-col fixed">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile sidebar */}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="w-72 p-0 bg-[#111827]">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-4 text-white md:hidden"
+            onClick={() => setOpen(false)}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+          {sidebarContent}
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
