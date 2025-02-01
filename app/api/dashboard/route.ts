@@ -3,39 +3,57 @@ import dbConnect from "@/lib/dbConnect";
 import { Field, Well, FieldOwnership } from "@/lib/models";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { User } from "@/lib/models";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "Ortak") {
+  if (
+    !session ||
+    (session.user.role !== "Ortak" && session.user.role !== "Admin")
+  ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     await dbConnect();
 
-    // Get field ownerships for the user
-    const fieldOwnerships = await FieldOwnership.find({
-      userId: session.user.id,
-    });
-    const fieldIds = fieldOwnerships.map((ownership) => ownership.fieldId);
+    let dashboardData;
 
-    // Get total fields
-    const totalFields = fieldIds.length;
+    if (session.user.role === "Ortak") {
+      // Existing code for "Ortak" role
+      const fieldOwnerships = await FieldOwnership.find({
+        userId: session.user.id,
+      });
+      const fieldIds = fieldOwnerships.map((ownership) => ownership.fieldId);
 
-    // Get active fields (assuming 'status' field exists and 'Ekili' means active)
-    const activeFields = await Field.countDocuments({
-      _id: { $in: fieldIds },
-      status: "Ekili",
-    });
+      const totalFields = fieldIds.length;
+      const activeFields = await Field.countDocuments({
+        _id: { $in: fieldIds },
+        status: "Ekili",
+      });
+      const wells = await Well.countDocuments({ field: { $in: fieldIds } });
 
-    // Get total wells (assuming there's a relation between fields and wells)
-    const wells = await Well.countDocuments({ field: { $in: fieldIds } });
+      dashboardData = {
+        totalFields,
+        activeFields,
+        totalWells: wells,
+      };
+    } else if (session.user.role === "Admin") {
+      // New code for "Admin" role
+      const totalFields = await Field.countDocuments();
+      const activeFields = await Field.countDocuments({ status: "Ekili" });
+      const totalWells = await Well.countDocuments();
+      const totalUsers = await User.countDocuments();
 
-    return NextResponse.json({
-      totalFields,
-      activeFields,
-      totalWells: wells,
-    });
+      dashboardData = {
+        totalFields,
+        activeFields,
+        totalWells,
+        totalUsers,
+      };
+    }
+
+    return NextResponse.json(dashboardData);
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
     return NextResponse.json(

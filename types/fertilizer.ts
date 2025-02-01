@@ -1,4 +1,5 @@
 import type { Document } from "mongoose";
+import type { Season } from "./season";
 
 export interface Fertilizer extends Document {
   _id: string;
@@ -9,18 +10,7 @@ export interface Fertilizer extends Document {
   currentStock: number;
   price: number;
   status: "Aktif" | "Pasif";
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface FertilizerUsage extends Document {
-  _id: string;
-  fertilizer: string;
-  field: string;
-  quantity: number;
-  usageDate: Date;
-  notes?: string;
-  appliedBy: string;
+  season: Season | string;
   createdAt: Date;
   updatedAt: Date;
 }

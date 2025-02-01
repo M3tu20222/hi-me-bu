@@ -3,12 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Fertilizer } from "@/types/fertilizer";
+import type { Season } from "@/types/season";
 
 interface FertilizerFormProps {
   fertilizer?: Fertilizer;
+  seasons: Season[];
 }
 
-export default function FertilizerForm({ fertilizer }: FertilizerFormProps) {
+export default function FertilizerForm({
+  fertilizer,
+  seasons,
+}: FertilizerFormProps) {
   const [name, setName] = useState(fertilizer?.name ?? "");
   const [type, setType] = useState<Fertilizer["type"]>(
     fertilizer?.type ?? "Katı"
@@ -23,6 +28,13 @@ export default function FertilizerForm({ fertilizer }: FertilizerFormProps) {
   const [price, setPrice] = useState(fertilizer?.price ?? 0);
   const [status, setStatus] = useState<Fertilizer["status"]>(
     fertilizer?.status ?? "Aktif"
+  );
+  const [season, setSeason] = useState<string>(
+    fertilizer?.season &&
+      typeof fertilizer.season === "object" &&
+      "_id" in fertilizer.season
+      ? fertilizer.season._id.toString()
+      : fertilizer?.season?.toString() || ""
   );
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -42,6 +54,7 @@ export default function FertilizerForm({ fertilizer }: FertilizerFormProps) {
       currentStock,
       price,
       status,
+      season: season || undefined,
     };
 
     try {
@@ -185,6 +198,25 @@ export default function FertilizerForm({ fertilizer }: FertilizerFormProps) {
           >
             <option value="Aktif">Aktif</option>
             <option value="Pasif">Pasif</option>
+          </select>
+        </div>
+        <div className="mb-4">
+          <label htmlFor="season" className="block text-neon-blue mb-2">
+            Sezon
+          </label>
+          <select
+            id="season"
+            value={season}
+            onChange={(e) => setSeason(e.target.value)}
+            className="w-full p-2 bg-gray-800 rounded border border-neon-blue focus:border-neon-pink"
+            required
+          >
+            <option value="">Sezon Seçin</option>
+            {seasons.map((s) => (
+              <option key={s._id} value={s._id}>
+                {s.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>

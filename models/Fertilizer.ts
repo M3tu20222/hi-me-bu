@@ -1,4 +1,4 @@
-import mongoose, { type Document } from "mongoose";
+import mongoose, { type Document, Schema } from "mongoose";
 
 interface IFertilizer extends Document {
   name: string;
@@ -8,6 +8,7 @@ interface IFertilizer extends Document {
   currentStock: number;
   price: number;
   status: "Aktif" | "Pasif";
+  season: Schema.Types.ObjectId;
 }
 
 const FertilizerSchema = new mongoose.Schema<IFertilizer>(
@@ -41,6 +42,11 @@ const FertilizerSchema = new mongoose.Schema<IFertilizer>(
       type: String,
       enum: ["Aktif", "Pasif"],
       default: "Aktif",
+    },
+    season: {
+      type: Schema.Types.ObjectId,
+      ref: "Season",
+      required: true,
     },
   },
   { timestamps: true }

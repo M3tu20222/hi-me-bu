@@ -6,6 +6,7 @@ const SeasonSchema = new mongoose.Schema({
   endDate: { type: Date, required: true },
   status: { type: String, enum: ["Aktif", "Pasif"], default: "Aktif" },
   fields: [{ type: mongoose.Schema.Types.ObjectId, ref: "Field" }],
+  fertilizers: [{ type: mongoose.Schema.Types.ObjectId, ref: "Fertilizer" }],
   year: { type: Number, required: true },
 });
 

@@ -18,7 +18,7 @@ export default function FertilizerList() {
 
   const fetchFertilizers = async () => {
     try {
-      const response = await fetch("/api/fertilizers");
+      const response = await fetch("/api/fertilizers?populate=season");
       if (!response.ok) {
         throw new Error("Gübreler yüklenirken bir hata oluştu");
       }
@@ -72,6 +72,7 @@ export default function FertilizerList() {
               <th className="p-3 text-left text-neon-blue">Mevcut Stok</th>
               <th className="p-3 text-left text-neon-blue">Fiyat</th>
               <th className="p-3 text-left text-neon-blue">Durum</th>
+              <th className="p-3 text-left text-neon-blue">Sezon</th>
               {session?.user.role === "Admin" && (
                 <th className="p-3 text-left text-neon-blue">İşlemler</th>
               )}
@@ -91,6 +92,15 @@ export default function FertilizerList() {
                   {fertilizer.price.toLocaleString()} ₺
                 </td>
                 <td className="p-3 text-neon-blue">{fertilizer.status}</td>
+                <td className="p-3 text-white">
+                  {fertilizer.season &&
+                  typeof fertilizer.season === "object" &&
+                  "name" in fertilizer.season
+                    ? fertilizer.season.name
+                    : fertilizer.season
+                    ? `${fertilizer.season}`
+                    : "Belirlenmemiş"}
+                </td>
                 {session?.user.role === "Admin" && (
                   <td className="p-3">
                     <Link

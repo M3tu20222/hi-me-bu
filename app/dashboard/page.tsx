@@ -9,6 +9,7 @@ interface DashboardData {
   totalFields: number;
   activeFields: number;
   totalWells: number;
+  totalUsers?: number;
 }
 
 export default function DashboardPage() {
@@ -94,6 +95,19 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+
+        {session?.user?.role === "Admin" && (
+          <Card className="bg-gray-800 border-neon-blue">
+            <CardHeader>
+              <CardTitle className="text-neon-blue">Toplam Kullanıcı</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-4xl font-bold text-white">
+                {dashboardData?.totalUsers || 0}
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

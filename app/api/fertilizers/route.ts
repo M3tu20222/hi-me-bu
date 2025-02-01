@@ -15,7 +15,7 @@ export async function GET() {
 
   try {
     await dbConnect();
-    const fertilizers = await Fertilizer.find({});
+    const fertilizers = await Fertilizer.find({}).populate("season");
     return NextResponse.json(fertilizers);
   } catch (error) {
     console.error("Gübreler yüklenirken hata:", error);
