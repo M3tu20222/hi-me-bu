@@ -17,6 +17,7 @@ import {
   FlaskRoundIcon as Flask,
   LogOut,
   X,
+  FolderTree,
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -75,6 +76,12 @@ export function Sidebar() {
         icon: Flask,
         color: "text-blue-700",
         href: "/admin/fertilizers",
+      },
+      {
+        label: "Kategori Yönetimi",
+        icon: FolderTree,
+        color: "text-yellow-500",
+        href: "/admin/categories",
       }
     );
   }
