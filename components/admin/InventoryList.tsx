@@ -29,7 +29,6 @@ interface Owner {
   ownershipPercentage: number;
 }
 
-// Update the IInventoryItem interface
 interface IInventoryItem {
   _id: string;
   name: string;
@@ -39,6 +38,10 @@ interface IInventoryItem {
   quantity: number;
   unit: string;
   currentValue: number;
+}
+
+interface TotalValues {
+  [key: string]: number;
 }
 
 const getOwnershipColor = (index: number) => {
@@ -93,11 +96,28 @@ const OwnershipBadge = ({
   );
 };
 
+const calculateTotalValues = (
+  inventoryItems: IInventoryItem[]
+): TotalValues => {
+  const totalValues: TotalValues = {};
+
+  inventoryItems.forEach((item) => {
+    item.owners.forEach((owner) => {
+      const ownerName = owner.userId.name || owner.userId._id;
+      const ownerValue = (item.currentValue * owner.ownershipPercentage) / 100;
+      totalValues[ownerName] = (totalValues[ownerName] || 0) + ownerValue;
+    });
+  });
+
+  return totalValues;
+};
+
 export default function InventoryList() {
   const { data: session } = useSession();
   const [inventoryItems, setInventoryItems] = useState<IInventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [totalValues, setTotalValues] = useState<TotalValues>({});
 
   useEffect(() => {
     fetchInventoryItems();
@@ -111,6 +131,7 @@ export default function InventoryList() {
       }
       const data = await response.json();
       setInventoryItems(data);
+      setTotalValues(calculateTotalValues(data));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Bir hata oluştu");
     } finally {
@@ -129,7 +150,11 @@ export default function InventoryList() {
         if (!response.ok) {
           throw new Error("Envanter öğesi silinirken bir hata oluştu");
         }
-        setInventoryItems(inventoryItems.filter((item) => item._id !== itemId));
+        const updatedItems = inventoryItems.filter(
+          (item) => item._id !== itemId
+        );
+        setInventoryItems(updatedItems);
+        setTotalValues(calculateTotalValues(updatedItems));
       } catch (err) {
         setError(err instanceof Error ? err.message : "Bir hata oluştu");
       }
@@ -221,7 +246,7 @@ export default function InventoryList() {
                     {item.unit}
                   </TableCell>
                   <TableCell className="text-neon-purple">
-                    {item.currentValue} TL
+                    {item.currentValue.toLocaleString()} TL
                   </TableCell>
                   {isAdmin && (
                     <TableCell>
@@ -289,7 +314,7 @@ export default function InventoryList() {
                   <div>
                     <span className="text-gray-400">Mevcut Değer:</span>
                     <span className="text-neon-purple ml-1">
-                      {item.currentValue} TL
+                      {item.currentValue.toLocaleString()} TL
                     </span>
                   </div>
                 </div>
@@ -339,6 +364,40 @@ export default function InventoryList() {
             </Card>
           ))}
         </div>
+
+        {/* Total values section */}
+        <Card className="mt-8 bg-gray-800 border-neon-blue">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-neon-pink">
+              Ortaklık Bölüşümüne Göre Toplam Tutarlar
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-b border-neon-blue">
+                  <TableHead className="text-neon-pink">Ortak</TableHead>
+                  <TableHead className="text-neon-pink text-right">
+                    Toplam Değer
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Object.entries(totalValues).map(([owner, value]) => (
+                  <TableRow
+                    key={owner}
+                    className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors duration-200"
+                  >
+                    <TableCell className="text-neon-blue">{owner}</TableCell>
+                    <TableCell className="text-neon-purple text-right">
+                      {value.toLocaleString()} TL
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </CardContent>
     </Card>
   );
