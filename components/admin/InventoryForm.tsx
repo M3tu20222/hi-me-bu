@@ -49,25 +49,46 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
   });
   const [error, setError] = useState("");
   const [users, setUsers] = useState<User[]>([]);
+  const [subCategories, setSubCategories] = useState<string[]>([]);
+  const [newSubCategory, setNewSubCategory] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await fetch("/api/users?role=Ortak");
-        if (!response.ok) {
-          throw new Error("Failed to fetch partners");
-        }
-        const data = await response.json();
-        setUsers(data);
-      } catch (error) {
-        console.error("Error fetching partners:", error);
-        setError("Ortaklar yüklenirken bir hata oluştu");
-      }
-    };
-
     fetchUsers();
-  }, []);
+    if (formData.category) {
+      fetchSubCategories(formData.category);
+    }
+  }, [formData.category]);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("/api/users?role=Ortak");
+      if (!response.ok) {
+        throw new Error("Failed to fetch partners");
+      }
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error("Error fetching partners:", error);
+      setError("Ortaklar yüklenirken bir hata oluştu");
+    }
+  };
+
+  const fetchSubCategories = async (category: string) => {
+    try {
+      const response = await fetch(
+        `/api/inventory/subcategories?category=${category}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch subcategories");
+      }
+      const data = await response.json();
+      setSubCategories(data);
+    } catch (error) {
+      console.error("Error fetching subcategories:", error);
+      setError("Alt kategoriler yüklenirken bir hata oluştu");
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement> | { name: string; value: any }
@@ -118,10 +139,18 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
         : "/api/inventory";
       const method = inventoryItem ? "PUT" : "POST";
 
+      const dataToSend = {
+        ...formData,
+        subCategory:
+          formData.subCategory === "new"
+            ? newSubCategory
+            : formData.subCategory,
+      };
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       });
 
       if (!response.ok) {
@@ -191,15 +220,45 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
             <Label htmlFor="subCategory" className="text-neon-blue">
               Alt Kategori
             </Label>
-            <Input
-              id="subCategory"
+            <Select
               name="subCategory"
               value={formData.subCategory}
-              onChange={handleChange}
-              placeholder="Alt Kategori"
-              className="bg-gray-800 border-neon-blue text-white placeholder-gray-400"
-            />
+              onValueChange={(value) => {
+                if (value === "new") {
+                  setFormData((prev) => ({ ...prev, subCategory: "new" }));
+                } else {
+                  handleChange({ name: "subCategory", value });
+                }
+              }}
+            >
+              <SelectTrigger className="bg-gray-800 border-neon-blue text-white">
+                <SelectValue placeholder="Alt kategori seçin veya yeni ekleyin" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-neon-blue">
+                {subCategories.map((subCat) => (
+                  <SelectItem key={subCat} value={subCat}>
+                    {subCat}
+                  </SelectItem>
+                ))}
+                <SelectItem value="new">Yeni Alt Kategori Ekle</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          {formData.subCategory === "new" && (
+            <div className="space-y-2">
+              <Label htmlFor="newSubCategory" className="text-neon-blue">
+                Yeni Alt Kategori
+              </Label>
+              <Input
+                id="newSubCategory"
+                value={newSubCategory}
+                onChange={(e) => setNewSubCategory(e.target.value)}
+                placeholder="Yeni alt kategori adı"
+                className="bg-gray-800 border-neon-blue text-white placeholder-gray-400"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="quantity" className="text-neon-blue">

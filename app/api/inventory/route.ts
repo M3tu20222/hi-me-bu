@@ -38,8 +38,23 @@ export async function POST(request: Request) {
   try {
     await dbConnect();
     const inventoryData = await request.json();
-    const inventoryItem = await Inventory.create(inventoryData);
-    return NextResponse.json(inventoryItem, { status: 201 });
+
+    // Check if the subCategory already exists for the given category
+    const existingSubCategory = await Inventory.findOne({
+      category: inventoryData.category,
+      subCategory: inventoryData.subCategory,
+    });
+
+    if (!existingSubCategory) {
+      // If the subCategory doesn't exist, create a new inventory item
+      const inventoryItem = await Inventory.create(inventoryData);
+      return NextResponse.json(inventoryItem, { status: 201 });
+    } else {
+      // If the subCategory already exists, update the existing item or create a new one based on your requirements
+      // For this example, we'll create a new item even if the subCategory exists
+      const inventoryItem = await Inventory.create(inventoryData);
+      return NextResponse.json(inventoryItem, { status: 201 });
+    }
   } catch (error) {
     console.error("Envanter öğesi oluşturma hatası:", error);
     return NextResponse.json(
