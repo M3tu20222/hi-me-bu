@@ -18,6 +18,7 @@ import {
   LogOut,
   X,
   FolderTree,
+  Clipboard,
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -76,6 +77,12 @@ export function Sidebar() {
         icon: Flask,
         color: "text-blue-700",
         href: "/admin/fertilizers",
+      },
+      {
+        label: "Envanter Yönetimi",
+        icon: Clipboard,
+        color: "text-yellow-500",
+        href: "/admin/inventory",
       },
       {
         label: "Kategori Yönetimi",
