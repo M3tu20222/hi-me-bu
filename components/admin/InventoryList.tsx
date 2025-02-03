@@ -105,7 +105,7 @@ export default function InventoryList() {
 
   const fetchInventoryItems = async () => {
     try {
-      const response = await fetch("/api/inventory");
+      const response = await fetch("/api/inventory/user");
       if (!response.ok) {
         throw new Error("Envanter öğeleri yüklenirken bir hata oluştu");
       }
