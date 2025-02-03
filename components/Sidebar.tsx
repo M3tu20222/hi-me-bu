@@ -106,6 +106,12 @@ export function Sidebar() {
         icon: Map,
         color: "text-emerald-500",
         href: "/ortak/fields",
+      },
+      {
+        label: "Envanter Listesi",
+        icon: Clipboard,
+        color: "text-yellow-500",
+        href: "/ortak/inventory", // Changed from "/admin/inventory" to "/ortak/inventory"
       }
     );
   }

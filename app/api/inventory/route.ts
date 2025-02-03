@@ -8,17 +8,17 @@ export async function GET() {
   const session = await getServerSession(authOptions);
   if (
     !session ||
-    (session.user.role !== "Admin" && session.user.role !== "Sahip")
+    (session.user.role !== "Admin" && session.user.role !== "Ortak")
   ) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     await dbConnect();
-    const inventoryItems = await Inventory.find({}).populate(
-      "owners.userId",
-      "name"
-    );
+    const inventoryItems = await Inventory.find({}).populate({
+      path: "owners.userId",
+      select: "name",
+    });
     return NextResponse.json(inventoryItems);
   } catch (error) {
     console.error("Envanter öğeleri yüklenirken hata:", error);
