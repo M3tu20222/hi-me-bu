@@ -38,6 +38,7 @@ interface IInventoryItem {
   quantity: number;
   unit: string;
   currentValue: number;
+  fuelConsumptionRate?: number; // Added fuelConsumptionRate
 }
 
 interface TotalValues {
@@ -193,7 +194,7 @@ export default function InventoryList() {
         <div className="hidden md:block">
           <Table>
             <TableHeader>
-              <TableRow className="border-b border-neon-blue">
+              <TableRow>
                 <TableHead className="text-neon-pink">Ad</TableHead>
                 <TableHead className="text-neon-pink">Kategori</TableHead>
                 <TableHead className="text-neon-pink">Alt Kategori</TableHead>
@@ -201,6 +202,9 @@ export default function InventoryList() {
                 <TableHead className="text-neon-pink">Miktar</TableHead>
                 <TableHead className="text-neon-pink">Birim</TableHead>
                 <TableHead className="text-neon-pink">Mevcut Değer</TableHead>
+                <TableHead className="text-neon-pink">
+                  Mazot Tüketim(L)
+                </TableHead>
                 {isAdmin && (
                   <TableHead className="text-neon-pink">İşlemler</TableHead>
                 )}
@@ -247,6 +251,13 @@ export default function InventoryList() {
                   </TableCell>
                   <TableCell className="text-neon-purple">
                     {item.currentValue.toLocaleString()} TL
+                  </TableCell>
+                  <TableCell className="text-neon-yellow">
+                    {" "}
+                    {/* Added column */}
+                    {item.fuelConsumptionRate
+                      ? `${item.fuelConsumptionRate} L/Dekar`
+                      : "-"}
                   </TableCell>
                   {isAdmin && (
                     <TableCell>
@@ -315,6 +326,17 @@ export default function InventoryList() {
                     <span className="text-gray-400">Mevcut Değer:</span>
                     <span className="text-neon-purple ml-1">
                       {item.currentValue.toLocaleString()} TL
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">
+                      Dekar Başı Mazot Tüketimi:
+                    </span>{" "}
+                    {/* Added mobile view */}
+                    <span className="text-neon-yellow ml-1">
+                      {item.fuelConsumptionRate
+                        ? `${item.fuelConsumptionRate} L/Dekar`
+                        : "-"}
                     </span>
                   </div>
                 </div>

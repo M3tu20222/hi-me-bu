@@ -17,6 +17,8 @@ export interface IInventoryItem extends Document {
     userId: Schema.Types.ObjectId;
     ownershipPercentage: number;
   }>;
+  fuelConsumptionRate?: number; // Dekar başına mazot tüketimi (L/Dekar)
+  relatedExpenseCategory?: Schema.Types.ObjectId; // İlişkili gider kategorisi
   creditDetails?: {
     totalAmount: number;
     remainingAmount: number;
@@ -53,6 +55,11 @@ const InventoryItemSchema: Schema = new Schema(
         ownershipPercentage: { type: Number, required: true },
       },
     ],
+    fuelConsumptionRate: { type: Number },
+    relatedExpenseCategory: {
+      type: Schema.Types.ObjectId,
+      ref: "ExpenseCategory",
+    },
     creditDetails: {
       totalAmount: Number,
       remainingAmount: Number,

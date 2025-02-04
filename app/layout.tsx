@@ -34,11 +34,11 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-background text-foreground`}>
+      <body className={`${inter.className} bg-black text-white`}>
         <SessionProvider session={session}>
           <SeasonProvider initialSeason={currentSeason}>
             <SidebarProvider defaultOpen={false}>
-              <div className="flex min-h-screen bg-[#0a0c10]">
+              <div className="flex min-h-screen">
                 {/* Mobile Navigation */}
                 <div className="md:hidden">
                   <MobileNav />
@@ -50,10 +50,10 @@ export default async function RootLayout({
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 md:pl-72">
+                <div className="flex-1 md:ml-72">
                   {/* Header */}
-                  <header className="sticky top-0 z-40 flex items-center justify-between px-4 py-4 bg-[#0a0c10] border-b border-[#1b1f2a]">
-                    <h1 className="text-2xl font-semibold text-white ml-12 md:ml-0">
+                  <header className="sticky top-0 z-40 flex items-center justify-between px-4 py-4 bg-black bg-opacity-70 border-b border-neon-blue">
+                    <h1 className="text-2xl font-semibold text-neon-pink ml-12 md:ml-0">
                       Çiftçilik Sistemi
                     </h1>
                     {seasons.length > 0 && (
@@ -66,7 +66,7 @@ export default async function RootLayout({
 
                   {/* Page Content */}
                   <main className="flex-1">
-                    <div className="container mx-auto p-4 bg-[#0a0c10] min-h-[calc(100vh-4rem)]">
+                    <div className="container mx-auto p-4 min-h-[calc(100vh-4rem)]">
                       {children}
                     </div>
                   </main>

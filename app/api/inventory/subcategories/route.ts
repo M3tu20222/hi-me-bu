@@ -26,7 +26,11 @@ export async function GET(request: Request) {
   try {
     await dbConnect();
     const subCategories = await Inventory.distinct("subCategory", { category });
-    return NextResponse.json(subCategories);
+    // Filter out null, undefined, or empty string subcategories
+    const validSubCategories = subCategories.filter(
+      (subCat) => subCat && subCat.trim() !== ""
+    );
+    return NextResponse.json(validSubCategories);
   } catch (error) {
     console.error("Error fetching subcategories:", error);
     return NextResponse.json(

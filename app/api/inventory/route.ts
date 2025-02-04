@@ -4,7 +4,7 @@ import { Inventory } from "@/lib/models";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
   if (
     !session ||
@@ -13,15 +13,22 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const category = searchParams.get("category");
+  const subCategory = searchParams.get("subCategory");
+
   try {
     await dbConnect();
-    const inventoryItems = await Inventory.find({}).populate({
-      path: "owners.userId",
-      select: "name",
-    });
+    let query = {};
+    if (category) query = { ...query, category };
+    if (subCategory) query = { ...query, subCategory };
+
+    const inventoryItems = await Inventory.find(query).select(
+      "name category subCategory fuelConsumptionRate"
+    );
     return NextResponse.json(inventoryItems);
   } catch (error) {
-    console.error("Envanter öğeleri yüklenirken hata:", error);
+    console.error("Error fetching inventory items:", error);
     return NextResponse.json(
       { error: "Envanter öğeleri yüklenirken bir hata oluştu" },
       { status: 500 }
@@ -38,27 +45,43 @@ export async function POST(request: Request) {
   try {
     await dbConnect();
     const inventoryData = await request.json();
-
-    // Check if the subCategory already exists for the given category
-    const existingSubCategory = await Inventory.findOne({
-      category: inventoryData.category,
-      subCategory: inventoryData.subCategory,
+    const inventoryItem = await Inventory.create({
+      ...inventoryData,
+      fuelConsumptionRate: inventoryData.fuelConsumptionRate,
     });
-
-    if (!existingSubCategory) {
-      // If the subCategory doesn't exist, create a new inventory item
-      const inventoryItem = await Inventory.create(inventoryData);
-      return NextResponse.json(inventoryItem, { status: 201 });
-    } else {
-      // If the subCategory already exists, update the existing item or create a new one based on your requirements
-      // For this example, we'll create a new item even if the subCategory exists
-      const inventoryItem = await Inventory.create(inventoryData);
-      return NextResponse.json(inventoryItem, { status: 201 });
-    }
+    return NextResponse.json(inventoryItem, { status: 201 });
   } catch (error) {
     console.error("Envanter öğesi oluşturma hatası:", error);
     return NextResponse.json(
       { error: "Envanter öğesi oluşturulurken bir hata oluştu" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== "Admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    await dbConnect();
+    const id = request.url.split("/").pop();
+    const inventoryData = await request.json();
+    const updatedInventoryItem = await Inventory.findByIdAndUpdate(
+      id,
+      {
+        ...inventoryData,
+        fuelConsumptionRate: inventoryData.fuelConsumptionRate,
+      },
+      { new: true, runValidators: true }
+    );
+    return NextResponse.json(updatedInventoryItem);
+  } catch (error) {
+    console.error("Envanter öğesi güncelleme hatası:", error);
+    return NextResponse.json(
+      { error: "Envanter öğesi güncellenirken bir hata oluştu" },
       { status: 500 }
     );
   }

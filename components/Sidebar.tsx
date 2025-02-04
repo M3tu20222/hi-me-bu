@@ -14,11 +14,13 @@ import {
   Droplet,
   Map,
   Sprout,
-  FlaskRoundIcon as Flask,
+  FlaskRound,
   LogOut,
   X,
   FolderTree,
   Clipboard,
+  Fuel,
+  Tractor,
 } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -36,8 +38,9 @@ export function Sidebar() {
       label: "Ana Sayfa",
       icon: Home,
       href: "/dashboard",
-      color: "text-sky-500",
-    },
+      color: "text-neon-blue",
+    }
+    
   ];
 
   if (session?.user?.role === "Admin") {
@@ -46,49 +49,61 @@ export function Sidebar() {
         label: "Kullanıcı Yönetimi",
         icon: Users,
         href: "/admin/users",
-        color: "text-violet-500",
+        color: "text-neon-pink",
       },
       {
         label: "Sezon Yönetimi",
         icon: Calendar,
-        color: "text-pink-700",
+        color: "text-neon-green",
         href: "/admin/seasons",
       },
       {
         label: "Kuyu Yönetimi",
         icon: Droplet,
-        color: "text-orange-700",
+        color: "text-neon-blue",
         href: "/admin/wells",
       },
       {
         label: "Tarla Yönetimi",
         icon: Map,
-        color: "text-emerald-500",
+        color: "text-neon-pink",
         href: "/admin/fields",
       },
       {
         label: "Ürün Yönetimi",
         icon: Sprout,
-        color: "text-green-700",
+        color: "text-neon-green",
         href: "/admin/products",
       },
       {
         label: "Gübre Yönetimi",
-        icon: Flask,
-        color: "text-blue-700",
+        icon: FlaskRound,
+        color: "text-neon-blue",
         href: "/admin/fertilizers",
       },
       {
         label: "Envanter Yönetimi",
         icon: Clipboard,
-        color: "text-yellow-500",
+        color: "text-neon-pink",
         href: "/admin/inventory",
       },
       {
-        label: "Kategori Yönetimi",
+        label: "Gider Kategorileri",
         icon: FolderTree,
-        color: "text-yellow-500",
-        href: "/admin/categories",
+        color: "text-neon-green",
+        href: "/admin/expense-categories",
+      },
+      {
+        label: "Mazot Harcamaları",
+        icon: Fuel,
+        color: "text-neon-blue",
+        href: "/admin/fuel-consumption",
+      },
+      {
+        label: "Tarla İşleme Kaydı",
+        icon: Tractor,
+        color: "text-neon-orange",
+        href: "/tarla-isleme-kaydi",
       }
     );
   }
@@ -98,29 +113,37 @@ export function Sidebar() {
       {
         label: "Kuyu Listesi",
         icon: Droplet,
-        color: "text-orange-700",
+        color: "text-neon-blue",
         href: "/ortak/wells",
       },
       {
         label: "Tarla Listesi",
         icon: Map,
-        color: "text-emerald-500",
+        color: "text-neon-pink",
         href: "/ortak/fields",
       },
       {
         label: "Envanter Listesi",
         icon: Clipboard,
-        color: "text-yellow-500",
-        href: "/ortak/inventory", // Changed from "/admin/inventory" to "/ortak/inventory"
+        color: "text-neon-green",
+        href: "/ortak/inventory",
+      },
+      {
+        label: "Tarla İşleme Kaydı",
+        icon: Tractor,
+        color: "text-neon-orange",
+        href: "/tarla-isleme-kaydi",
       }
     );
   }
 
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-[#0a0c10] text-white">
+    <div className="flex h-full flex-col bg-black bg-opacity-70 text-white">
       <div className="flex-1 px-3 py-4">
         <Link href="/dashboard" className="flex items-center pl-3 mb-10">
-          <h1 className="text-2xl font-bold">Çiftçilik Sistemi</h1>
+          <h1 className="text-2xl font-bold text-neon-pink">
+            Çiftçilik Sistemi
+          </h1>
         </Link>
         <ScrollArea className="h-[calc(100vh-10rem)]">
           <div className="space-y-1">
@@ -130,7 +153,8 @@ export function Sidebar() {
                 variant={pathname === route.href ? "secondary" : "ghost"}
                 className={cn(
                   "w-full justify-start",
-                  pathname === route.href ? "bg-white/10" : ""
+                  pathname === route.href ? "bg-purple-900 bg-opacity-50" : "",
+                  "hover:bg-purple-800 hover:bg-opacity-50"
                 )}
                 asChild
               >
@@ -143,10 +167,10 @@ export function Sidebar() {
           </div>
         </ScrollArea>
       </div>
-      <div className="mt-auto p-4 border-t border-gray-800">
+      <div className="mt-auto p-4 border-t border-neon-blue">
         <Button
           variant="ghost"
-          className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-900/20"
+          className="w-full justify-start text-neon-pink hover:text-neon-blue hover:bg-purple-800 hover:bg-opacity-50"
           onClick={handleSignOut}
         >
           <LogOut className="h-5 w-5 mr-3" />
@@ -159,13 +183,13 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop sidebar */}
-      <div className="hidden md:flex h-full w-full flex-col bg-[#0a0c10]">
+      <div className="hidden md:flex h-full w-full flex-col bg-black bg-opacity-70">
         {sidebarContent}
       </div>
 
       {/* Mobile sidebar */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-72 p-0 bg-[#0a0c10]">
+        <SheetContent side="left" className="w-72 p-0 bg-black bg-opacity-70">
           <Button
             variant="ghost"
             size="icon"

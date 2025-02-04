@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { IInventoryItem } from "@/models/Inventory";
 import type { User } from "@/types/user";
+import type { IExpenseCategory } from "@/models/ExpenseCategory";
 import { Types } from "mongoose";
 import type React from "react";
 
@@ -44,6 +45,8 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
         purchasePrice: 0,
         currentValue: 0,
         owners: [],
+        fuelConsumptionRate: 0,
+        relatedExpenseCategory: undefined,
       };
     }
   });
@@ -51,10 +54,14 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [subCategories, setSubCategories] = useState<string[]>([]);
   const [newSubCategory, setNewSubCategory] = useState("");
+  const [expenseCategories, setExpenseCategories] = useState<
+    IExpenseCategory[]
+  >([]);
   const router = useRouter();
 
   useEffect(() => {
     fetchUsers();
+    fetchExpenseCategories();
     if (formData.category) {
       fetchSubCategories(formData.category);
     }
@@ -77,7 +84,7 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
   const fetchSubCategories = async (category: string) => {
     try {
       const response = await fetch(
-        `/api/inventory/subcategories?category=${category}`
+        `/api/inventory/subcategories?category=${encodeURIComponent(category)}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch subcategories");
@@ -90,6 +97,21 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
     }
   };
 
+  const fetchExpenseCategories = async () => {
+    try {
+      const response = await fetch("/api/expense-categories");
+      if (!response.ok) {
+        throw new Error("Failed to fetch expense categories");
+      }
+      const data = await response.json();
+      console.log("Fetched expense categories:", data);
+      setExpenseCategories(data);
+    } catch (error) {
+      console.error("Error fetching expense categories:", error);
+      setError("Gider kategorileri yüklenirken bir hata oluştu");
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement> | { name: string; value: any }
   ) => {
@@ -97,7 +119,8 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
     const value = "target" in e ? e.target.value : e.value;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "purchaseDate" ? new Date(value) : value,
+      [name]:
+        name === "purchaseDate" ? new Date(value) : value === "" ? null : value,
     }));
   };
 
@@ -181,7 +204,7 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
             <Input
               id="name"
               name="name"
-              value={formData.name}
+              value={formData.name || ""}
               onChange={handleChange}
               placeholder="Envanter Öğesi Adı"
               required
@@ -195,7 +218,7 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
             </Label>
             <Select
               name="category"
-              value={formData.category}
+              value={formData.category || ""}
               onValueChange={(value) =>
                 handleChange({ name: "category", value })
               }
@@ -222,7 +245,7 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
             </Label>
             <Select
               name="subCategory"
-              value={formData.subCategory}
+              value={formData.subCategory || ""}
               onValueChange={(value) => {
                 if (value === "new") {
                   setFormData((prev) => ({ ...prev, subCategory: "new" }));
@@ -235,6 +258,7 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
                 <SelectValue placeholder="Alt kategori seçin veya yeni ekleyin" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-neon-blue">
+                <SelectItem value="select">Alt Kategori Seçin</SelectItem>
                 {subCategories.map((subCat) => (
                   <SelectItem key={subCat} value={subCat}>
                     {subCat}
@@ -268,7 +292,7 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
               id="quantity"
               name="quantity"
               type="number"
-              value={formData.quantity}
+              value={formData.quantity || 0}
               onChange={handleChange}
               placeholder="Miktar"
               required
@@ -283,7 +307,7 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
             <Input
               id="unit"
               name="unit"
-              value={formData.unit}
+              value={formData.unit || ""}
               onChange={handleChange}
               placeholder="Birim"
               required
@@ -323,7 +347,7 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
               id="purchasePrice"
               name="purchasePrice"
               type="number"
-              value={formData.purchasePrice}
+              value={formData.purchasePrice || 0}
               onChange={handleChange}
               placeholder="Satın Alma Fiyatı"
               required
@@ -339,12 +363,56 @@ export default function InventoryForm({ inventoryItem }: InventoryFormProps) {
               id="currentValue"
               name="currentValue"
               type="number"
-              value={formData.currentValue}
+              value={formData.currentValue || 0}
               onChange={handleChange}
               placeholder="Mevcut Değer"
               required
               className="bg-gray-800 border-neon-blue text-white placeholder-gray-400"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="fuelConsumptionRate" className="text-neon-blue">
+              Dekar Başına Mazot Tüketimi (L/Dekar)
+            </Label>
+            <Input
+              id="fuelConsumptionRate"
+              name="fuelConsumptionRate"
+              type="number"
+              value={formData.fuelConsumptionRate || 0}
+              onChange={handleChange}
+              placeholder="Dekar Başına Mazot Tüketimi"
+              className="bg-gray-800 border-neon-blue text-white placeholder-gray-400"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="relatedExpenseCategory" className="text-neon-blue">
+              İlişkili Gider Kategorisi
+            </Label>
+            <Select
+              name="relatedExpenseCategory"
+              value={formData.relatedExpenseCategory?.toString() || ""}
+              onValueChange={(value) => {
+                console.log("Selected expense category:", value);
+                handleChange({ name: "relatedExpenseCategory", value });
+              }}
+            >
+              <SelectTrigger className="bg-gray-800 border-neon-blue text-white">
+                <SelectValue placeholder="Gider kategorisi seçin" />
+              </SelectTrigger>
+              <SelectContent className="bg-gray-800 border-neon-blue">
+                <SelectItem value="select">Gider Kategorisi Seçin</SelectItem>
+                {expenseCategories.map((category) => (
+                  <SelectItem
+                    key={category._id.toString()}
+                    value={category._id.toString()}
+                  >
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

@@ -12,3 +12,7 @@ export { default as Loan } from "@/models/Loan";
 export { default as Product } from "@/models/Product";
 export { default as Fertilizer } from "@/models/Fertilizer";
 export { default as Category } from "@/models/Category";
+export { default as ExpenseCategory } from "@/models/ExpenseCategory";
+export { default as FuelConsumption } from "@/models/FuelConsumption";
+export { default as Expense } from "@/models/Expense";
+export { default as TarlaIslemeKaydi } from "@/models/TarlaIslemeKaydi";
