@@ -21,6 +21,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
+import { useSession } from "next-auth/react";
+import { Edit } from "lucide-react";
 
 interface InventoryItem {
   _id: string;
@@ -57,6 +59,7 @@ interface ProcessingRecord {
 }
 
 export default function TarlaIslemeKaydi() {
+  const { data: session } = useSession();
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [fields, setFields] = useState<Field[]>([]);
   const [records, setRecords] = useState<ProcessingRecord[]>([]);
@@ -70,6 +73,9 @@ export default function TarlaIslemeKaydi() {
   const [selectedFieldOwners, setSelectedFieldOwners] = useState<
     FieldOwnership[]
   >([]);
+  const [editingRecord, setEditingRecord] = useState<ProcessingRecord | null>(
+    null
+  );
 
   useEffect(() => {
     fetchInventoryItems();
@@ -100,7 +106,7 @@ export default function TarlaIslemeKaydi() {
         throw new Error("Tarlalar yüklenirken bir hata oluştu");
       }
       const data = await response.json();
-      setFields(data.fields || []); // Ensure we're setting the fields array from the response
+      setFields(data.fields || []);
       setIsLoading(false);
     } catch (err) {
       console.error("Error fetching fields:", err);
@@ -110,17 +116,24 @@ export default function TarlaIslemeKaydi() {
   };
 
   const fetchRecords = async () => {
-    // Fetch existing records from API
-    // This is a placeholder, replace with actual API call
-    const response = await fetch("/api/tarla-isleme-kaydi");
-    const data = await response.json();
-    setRecords(data);
-    setIsLoading(false);
+    try {
+      const response = await fetch("/api/tarla-isleme-kaydi");
+      if (!response.ok) {
+        throw new Error("Kayıtlar yüklenirken bir hata oluştu");
+      }
+      const data = await response.json();
+      setRecords(data);
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error fetching records:", err);
+      setError(err instanceof Error ? err.message : "Bir hata oluştu");
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null); // Clear any previous errors
+    setError(null);
     const inventoryItem = inventoryItems.find(
       (item) => item._id === selectedInventoryItem
     );
@@ -143,12 +156,17 @@ export default function TarlaIslemeKaydi() {
       processedArea: field.size,
       totalFuelConsumption,
       totalCost,
-      fieldOwners: field.owners, // Include the field owners data
+      fieldOwners: field.owners,
     };
 
     try {
-      const response = await fetch("/api/tarla-isleme-kaydi", {
-        method: "POST",
+      const url = editingRecord
+        ? `/api/tarla-isleme-kaydi/${editingRecord._id}`
+        : "/api/tarla-isleme-kaydi";
+      const method = editingRecord ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newRecord),
       });
@@ -161,17 +179,44 @@ export default function TarlaIslemeKaydi() {
       }
 
       const savedRecord = await response.json();
-      setRecords([...records, savedRecord]);
 
-      // Reset form fields
-      setSelectedInventoryItem("");
-      setSelectedField("");
-      setDate(format(new Date(), "yyyy-MM-dd"));
-      setFuelPrice(0);
-      setSelectedFieldOwners([]);
+      if (editingRecord) {
+        setRecords(
+          records.map((record) =>
+            record._id === savedRecord._id ? savedRecord : record
+          )
+        );
+      } else {
+        setRecords([...records, savedRecord]);
+      }
+
+      resetForm();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Bir hata oluştu");
     }
+  };
+
+  const resetForm = () => {
+    setSelectedInventoryItem("");
+    setSelectedField("");
+    setDate(format(new Date(), "yyyy-MM-dd"));
+    setFuelPrice(0);
+    setSelectedFieldOwners([]);
+    setEditingRecord(null);
+  };
+
+  const handleEdit = (record: ProcessingRecord) => {
+    if (session?.user?.role !== "Admin") {
+      setError("Sadece admin kullanıcılar kayıtları düzenleyebilir.");
+      return;
+    }
+
+    setEditingRecord(record);
+    setSelectedInventoryItem(record.inventoryItemId);
+    setSelectedField(record.fieldId);
+    setDate(format(new Date(record.date), "yyyy-MM-dd"));
+    setFuelPrice(record.totalCost / record.totalFuelConsumption);
+    setSelectedFieldOwners(record.fieldOwners);
   };
 
   if (isLoading)
@@ -303,8 +348,17 @@ export default function TarlaIslemeKaydi() {
             type="submit"
             className="w-full bg-neon-blue hover:bg-neon-pink text-black font-bold"
           >
-            Kaydet
+            {editingRecord ? "Güncelle" : "Kaydet"}
           </Button>
+          {editingRecord && (
+            <Button
+              type="button"
+              onClick={resetForm}
+              className="w-full bg-neon-pink hover:bg-neon-blue text-black font-bold mt-2"
+            >
+              İptal
+            </Button>
+          )}
         </form>
 
         <div className="mt-8">
@@ -324,6 +378,9 @@ export default function TarlaIslemeKaydi() {
                 <TableHead className="text-neon-pink">
                   Toplam Maliyet (TL)
                 </TableHead>
+                {session?.user?.role === "Admin" && (
+                  <TableHead className="text-neon-pink">İşlemler</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -347,6 +404,16 @@ export default function TarlaIslemeKaydi() {
                   <TableCell className="text-white">
                     {record.totalCost.toFixed(2)}
                   </TableCell>
+                  {session?.user?.role === "Admin" && (
+                    <TableCell>
+                      <Button
+                        onClick={() => handleEdit(record)}
+                        className="bg-neon-blue hover:bg-neon-pink text-black font-bold p-2"
+                      >
+                        <Edit size={16} />
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))}
             </TableBody>
