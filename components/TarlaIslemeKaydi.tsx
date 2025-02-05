@@ -101,12 +101,17 @@ export default function TarlaIslemeKaydi() {
 
   const fetchFields = async () => {
     try {
-      const response = await fetch("/api/fields");
+      const response = await fetch("/api/all-fields");
       if (!response.ok) {
         throw new Error("Tarlalar yüklenirken bir hata oluştu");
       }
       const data = await response.json();
-      setFields(data.fields || []);
+      setFields(
+        data.map((field: Field) => ({
+          ...field,
+          owners: Array.isArray(field.owners) ? field.owners : [],
+        }))
+      );
       setIsLoading(false);
     } catch (err) {
       console.error("Error fetching fields:", err);
@@ -270,8 +275,13 @@ export default function TarlaIslemeKaydi() {
               onValueChange={(value) => {
                 setSelectedField(value);
                 const selectedFieldData = fields.find((f) => f._id === value);
-                if (selectedFieldData) {
+                if (
+                  selectedFieldData &&
+                  Array.isArray(selectedFieldData.owners)
+                ) {
                   setSelectedFieldOwners(selectedFieldData.owners);
+                } else {
+                  setSelectedFieldOwners([]);
                 }
               }}
             >
